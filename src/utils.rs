@@ -57,7 +57,7 @@ pub struct Location {
 
 impl std::fmt::Display for Location {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    f.write_str(&format!("Location of object #{}: x - {}, y - {}, z - {}", self.id, self.x, self.y, self.z))
+    f.write_str(&format!("Местоположение объекта #{}: x - {}, y - {}, z - {}", self.id, self.x, self.y, self.z))
   }
 }
 

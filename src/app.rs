@@ -119,7 +119,7 @@ impl LittleLocatorApp {
 
     ui.horizontal(|ui| {
       ui.label("Выбранная карта:");
-      ui.monospace(image_path);
+      ui.monospace(format!("{}", image_path.rsplit("/").next().unwrap()));
     });
 
     {
