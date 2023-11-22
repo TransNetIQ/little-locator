@@ -1,0 +1,22 @@
+[package]
+name = "little-locator"
+version = "0.1.0"
+edition = "2021"
+authors = ["Klimenty Titov <aclo.create@gmail.com>"]
+license = "MIT"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+eframe = "0.23"
+egui = "0.23"
+egui_extras = { version = "0.23", features = ["all_loaders"] }
+image = { version = "0.24", default-features = false, features = ["jpeg", "png"] }
+once_cell = { version = "1.18.0", features = ["parking_lot"] }
+rfd = "0.11"
+salvo = "0.57"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1", features = ["macros"] }
+tracing = "0.1"
+tracing-subscriber = "0.3"
