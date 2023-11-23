@@ -17,7 +17,7 @@ async fn main() {
   tracing_subscriber::fmt().init();
   async_spawn(async {
     let router = Router::new().post(post_new_location);
-    let acceptor = TcpListener::new("127.0.0.1:5800").bind().await;
+    let acceptor = TcpListener::new("0.0.0.0:5800").bind().await;
     Server::new(acceptor).serve(router).await;
   });
   run_app("Little Locator", GuiNativeOptions::default(), Box::new(|cc| Box::new(LittleLocatorApp::new(cc)))).unwrap();

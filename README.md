@@ -22,7 +22,8 @@
 Установите `rustup`, затем выполните:
 
 ```bash
-rustup install stable
+curl https://sh.rustup.rs -sSf | sh
+sudo apt-get install build-essential libgtk-3-dev libglib2.0-dev
 ```
 
 ## Сборка
