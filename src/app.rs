@@ -1,10 +1,11 @@
 //! Приложение для отрисовки местоположений.
 
 use egui::{pos2, vec2};
-use std::collections::{HashMap, VecDeque};
+use std::collections::HashMap;
+use std::sync::mpsc;
 use std::sync::{Arc, Mutex};
 
-use crate::utils::{DataQueue, Location, DATA_QUEUE};
+use crate::utils::{Location, DATA_QUEUE};
 
 /// Загружает изображение из файла.
 fn load_image_from_path(path: &std::path::Path) -> Result<egui::ColorImage, image::ImageError> {
@@ -19,7 +20,6 @@ fn load_image_from_path(path: &std::path::Path) -> Result<egui::ColorImage, imag
 }
 
 /// Структура приложения.
-#[derive(Default, Clone)]
 pub struct LittleLocatorApp {
   // Поля страницы выбора карты
   l_input: String,
@@ -28,7 +28,7 @@ pub struct LittleLocatorApp {
   // Данные о местоположениях и карте
   location_image: Option<String>,
   location_size: Option<[f32; 2]>,
-  data_flow: DataQueue<Location>,
+  data_receiver: mpsc::Receiver<Location>,
   current_locations: HashMap<String, Location>,
 }
 
@@ -36,13 +36,16 @@ impl LittleLocatorApp {
   /// Создаёт приложение.
   pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
     egui_extras::install_image_loaders(&cc.egui_ctx);
-    let data_flow = Arc::new(Mutex::new(VecDeque::new()));
-    DATA_QUEUE.set(data_flow.clone()).ok();
+    let (data_tx, data_rx) = mpsc::channel::<Location>();
+    DATA_QUEUE.set(Arc::new(Mutex::new(data_tx))).ok();
     Self {
-      data_flow,
+      data_receiver: data_rx,
       l_input: "25.0".into(),
       w_input: "25.0".into(),
-      ..Default::default()
+      location_image: None,
+      location_size: None,
+      done: false,
+      current_locations: HashMap::new(),
     }
   }
 
@@ -122,12 +125,10 @@ impl LittleLocatorApp {
       ui.monospace(format!("{}", image_path.rsplit("/").next().unwrap()));
     });
 
-    {
-      let mut data_flow_guard = self.data_flow.lock().unwrap();
-      while let Some(new_location) = data_flow_guard.pop_front() {
-        self.current_locations.insert(new_location.id.clone(), new_location);
-      }
+    while let Ok(new_location) = self.data_receiver.try_recv() {
+      self.current_locations.insert(new_location.id.clone(), new_location);
     }
+
     for key in self.current_locations.keys() {
       ui.label(format!("{}", self.current_locations.get(key).unwrap()));
     }

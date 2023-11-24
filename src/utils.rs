@@ -4,7 +4,7 @@ use once_cell::sync::OnceCell;
 use salvo::{Depot, Request, Response, http::{ParseError, StatusCode}, Writer};
 use salvo::async_trait;
 use serde::Deserialize;
-use std::collections::VecDeque;
+use std::sync::mpsc;
 use std::sync::{Arc, Mutex};
 
 /// Ошибка сервера.
@@ -44,6 +44,12 @@ impl<T> From<std::sync::PoisonError<T>> for ServerError {
   }
 }
 
+impl<T> From<mpsc::SendError<T>> for ServerError {
+  fn from(value: mpsc::SendError<T>) -> Self {
+    value.to_string().into()
+  }
+}
+
 pub type MResult<T> = Result<T, ServerError>;
 
 /// Данные о местоположении.
@@ -62,5 +68,5 @@ impl std::fmt::Display for Location {
 }
 
 // Ячейка для обмена данными между бэкендом и фронтендом.
-pub type DataQueue<T> = Arc<Mutex<VecDeque<T>>>;
+pub type DataQueue<T> = Arc<Mutex<mpsc::Sender<T>>>;
 pub static DATA_QUEUE: OnceCell<DataQueue<Location>> = OnceCell::new();

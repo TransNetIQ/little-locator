@@ -12,6 +12,6 @@ pub async fn post_new_location(req: &mut Request) -> MResult<&'static str> {
   DATA_QUEUE
     .get().ok_or::<String>("Не удалось подключиться к очереди данных.".into())?
     .lock()?
-    .push_back(data);
+    .send(data)?;
   Ok("Gotcha!")
 }
