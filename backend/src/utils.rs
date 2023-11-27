@@ -1,11 +1,10 @@
 //! Утилиты для приложения.
 
-use once_cell::sync::OnceCell;
+use ll_data::Location;
 use salvo::{Depot, Request, Response, http::{ParseError, StatusCode}, Writer};
 use salvo::async_trait;
-use serde::Deserialize;
 use std::sync::mpsc;
-use std::sync::{Arc, Mutex};
+use std::sync::OnceLock;
 
 /// Ошибка сервера.
 pub struct ServerError {
@@ -52,21 +51,6 @@ impl<T> From<mpsc::SendError<T>> for ServerError {
 
 pub type MResult<T> = Result<T, ServerError>;
 
-/// Данные о местоположении.
-#[derive(Deserialize, Clone)]
-pub struct Location {
-  pub id: String,
-  pub x: f32,
-  pub y: f32,
-  pub z: f32,
-}
-
-impl std::fmt::Display for Location {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    f.write_str(&format!("Местоположение объекта #{}: x - {}, y - {}, z - {}", self.id, self.x, self.y, self.z))
-  }
-}
-
 // Ячейка для обмена данными между бэкендом и фронтендом.
-pub type DataQueue<T> = Arc<Mutex<mpsc::Sender<T>>>;
-pub static DATA_QUEUE: OnceCell<DataQueue<Location>> = OnceCell::new();
+pub type DataQueue<T> = mpsc::Sender<T>;
+pub static DATA_QUEUE: OnceLock<DataQueue<Location>> = OnceLock::new();

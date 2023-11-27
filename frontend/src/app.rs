@@ -1,11 +1,12 @@
 //! Приложение для отрисовки местоположений.
 
+use ll_data::DATA_QUEUE;
 use egui::{pos2, vec2};
+use ll_data::Location;
 use std::collections::HashMap;
 use std::sync::mpsc;
 use std::sync::{Arc, Mutex};
-
-use crate::utils::{Location, DATA_QUEUE};
+use web_sys::{ErrorEvent, MessageEvent, WebSocket};
 
 /// Загружает изображение из файла.
 fn load_image_from_path(path: &std::path::Path) -> Result<egui::ColorImage, image::ImageError> {
@@ -99,7 +100,7 @@ impl LittleLocatorApp {
     });
 
     if ui.button("Выбор карты…").clicked() {
-      if let Some(path) = rfd::FileDialog::new().pick_file() {
+      if let Some(path) =  {
         self.location_image = Some(path.display().to_string());
       }
     }
