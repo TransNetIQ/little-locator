@@ -1,16 +1,33 @@
 //! Приложение для отрисовки местоположений.
 
-use ll_data::DATA_QUEUE;
 use egui::{pos2, vec2};
+use ll_data::DATA_QUEUE;
 use ll_data::Location;
 use std::collections::HashMap;
 use std::sync::mpsc;
 use std::sync::{Arc, Mutex};
-use web_sys::{ErrorEvent, MessageEvent, WebSocket};
+
+#[cfg(target_arch = "wasm32")]
+use rfd::AsyncFileDialog;
+#[cfg(not(target_arch = "wasm32"))]
+use rfd::FileDialog;
+
+// use web_sys::{ErrorEvent, MessageEvent, WebSocket};
 
 /// Загружает изображение из файла.
-fn load_image_from_path(path: &std::path::Path) -> Result<egui::ColorImage, image::ImageError> {
-  let image = image::io::Reader::open(path)?.decode()?;
+// fn load_image_from_path(path: &std::path::Path) -> Result<egui::ColorImage, image::ImageError> {
+//   let image = image::io::Reader::open(path)?.decode()?;
+//   let size = [image.width() as _, image.height() as _];
+//   let image_buffer = image.to_rgba8();
+//   let pixels = image_buffer.as_flat_samples();
+//   Ok(egui::ColorImage::from_rgba_unmultiplied(
+//     size,
+//     pixels.as_slice(),
+//   ))
+// }
+
+fn load_image_from_memory(image_data: &[u8]) -> Result<egui::ColorImage, image::ImageError> {
+  let image = image::load_from_memory(image_data)?;
   let size = [image.width() as _, image.height() as _];
   let image_buffer = image.to_rgba8();
   let pixels = image_buffer.as_flat_samples();
@@ -26,8 +43,10 @@ pub struct LittleLocatorApp {
   l_input: String,
   w_input: String,
   done: bool,
+  // Данные картинок
+  position_image_bytes: Arc<Mutex<Option<Vec<u8>>>>,
   // Данные о местоположениях и карте
-  location_image: Option<String>,
+  location_image: Arc<Mutex<Option<Vec<u8>>>>,
   location_size: Option<[f32; 2]>,
   data_receiver: mpsc::Receiver<Location>,
   current_locations: HashMap<String, Location>,
@@ -39,11 +58,23 @@ impl LittleLocatorApp {
     egui_extras::install_image_loaders(&cc.egui_ctx);
     let (data_tx, data_rx) = mpsc::channel::<Location>();
     DATA_QUEUE.set(Arc::new(Mutex::new(data_tx))).ok();
+
+    let pos_img = Arc::new(Mutex::new(Option::None));
+    {
+      let pos_img = pos_img.clone();
+      let request = ehttp::Request::get("http://127.0.0.1:5800/position_img");
+      ehttp::fetch(request, move |result: ehttp::Result<ehttp::Response>| {
+        log::debug!("{:?}", result);
+        *pos_img.lock().unwrap() = Some(result.unwrap().bytes.clone());
+      });
+    }
+
     Self {
       data_receiver: data_rx,
       l_input: "25.0".into(),
       w_input: "25.0".into(),
-      location_image: None,
+      position_image_bytes: pos_img,
+      location_image: Arc::new(Mutex::new(Option::None)),
       location_size: None,
       done: false,
       current_locations: HashMap::new(),
@@ -55,15 +86,17 @@ impl LittleLocatorApp {
     let (response, painter) = ui.allocate_painter(ui.available_size_before_wrap(), egui::Sense::drag());
 
     // Рисуем здание
-    egui::Image::from_uri(format!("file://{}", self.location_image.as_ref().unwrap().clone()))
+    let loc_img = self.location_image.lock().unwrap();
+    egui::Image::from_bytes("bytes://location_map", loc_img.as_ref().unwrap().clone())
       .tint(egui::Color32::WHITE)
       .fit_to_original_size(1f32)
       .paint_at(ui, painter.clip_rect());
 
     // Рисуем местоположения объектов
+    let pos_img = self.position_image_bytes.lock().unwrap();
     let tag_txr = ui.ctx().load_texture(
       "tag",
-      egui::ImageData::Color(Arc::new(load_image_from_path(&std::path::PathBuf::from("arts/position.png")).unwrap())),
+      egui::ImageData::Color(Arc::new(load_image_from_memory(pos_img.as_ref().unwrap()).unwrap())),
       Default::default(),
     );
 
@@ -100,8 +133,25 @@ impl LittleLocatorApp {
     });
 
     if ui.button("Выбор карты…").clicked() {
-      if let Some(path) =  {
-        self.location_image = Some(path.display().to_string());
+      let image_path = self.location_image.clone();
+      #[cfg(target_arch = "wasm32")] {
+        wasm_bindgen_futures::spawn_local(async move {
+          let file = AsyncFileDialog::new()
+            .add_filter("image", &["png", "jpg"])
+            .set_directory("/")
+            .pick_file()
+            .await;
+          let data = file.unwrap().read().await;
+          *image_path.lock().unwrap() = Some(data.clone());
+        });
+      }
+      #[cfg(not(target_arch = "wasm32"))] {
+        let file = FileDialog::new()
+          .add_filter("image", &["png", "jpg"])
+          .set_directory("/")
+          .pick_file();
+        let data = std::fs::read(file.unwrap()).unwrap();
+        *image_path.lock().unwrap() = Some(data);
       }
     }
 
@@ -116,16 +166,6 @@ impl LittleLocatorApp {
 
   /// Показывает страницу с картой.
   pub fn show_map_page(&mut self, ui: &mut egui::Ui) {
-    let image_path = match &self.location_image {
-      None => { self.show_map_selection_page(ui); return },
-      Some(image_path) => image_path,
-    };
-
-    ui.horizontal(|ui| {
-      ui.label("Выбранная карта:");
-      ui.monospace(format!("{}", image_path.rsplit("/").next().unwrap()));
-    });
-
     while let Ok(new_location) = self.data_receiver.try_recv() {
       self.current_locations.insert(new_location.id.clone(), new_location);
     }
