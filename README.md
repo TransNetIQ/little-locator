@@ -24,7 +24,8 @@
 ```bash
 curl https://sh.rustup.rs -sSf | sh
 sudo apt-get install build-essential libgtk-3-dev libglib2.0-dev
-cargo install trunk
+rustup target add wasm32-unknown-unknown
+cargo install --locked trunk
 ```
 
 ## Сборка фронтенда
