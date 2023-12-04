@@ -1,9 +1,9 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex, OnceLock};
 use std::sync::mpsc;
 
 /// Данные о местоположении.
-#[derive(Deserialize, Clone)]
+#[derive(Deserialize, Serialize, Clone)]
 pub struct Location {
   pub id: String,
   pub x: f32,
