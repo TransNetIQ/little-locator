@@ -7,15 +7,20 @@ use salvo::{Listener, Router, Server, conn::TcpListener};
 use salvo::cors::Cors;
 use salvo::http::Method;
 
-use crate::server::{get_position_img, post_new_location};
+use crate::server::{get_position_img, post_new_location, ws_location_sender};
+use crate::utils::{DATA_TX_QUEUE, DATA_RX_QUEUE};
 
 /// Запускает программу.
 #[tokio::main]
 async fn main() {
   tracing_subscriber::fmt().init();
 
+  let (tx, rx) = std::sync::mpsc::channel();
+  DATA_TX_QUEUE.set(tx).unwrap();
+  DATA_RX_QUEUE.set(std::sync::Arc::new(tokio::sync::Mutex::new(rx))).unwrap();
+
   let cors_handler = Cors::new()
-    .allow_origin("http://127.0.0.1:5800")
+    .allow_origin("*")
     .allow_methods(vec![Method::GET, Method::POST])
     .into_handler();
 
@@ -28,10 +33,13 @@ async fn main() {
         .options(salvo::handler::empty())
     )
     .push(
+      Router::with_path("ws_updater")
+        .goal(ws_location_sender)
+        .options(salvo::handler::empty())
+    )
+    .push(
       Router::with_path("<**path>")
-        .get(
-          salvo::serve_static::StaticDir::new(["../frontend/dist"]).defaults("index.html")
-        )
+        .get(salvo::serve_static::StaticDir::new(["../frontend/dist"]).defaults("index.html"))
         .options(salvo::handler::empty())
     );
   let acceptor = TcpListener::new("0.0.0.0:5800").bind().await;

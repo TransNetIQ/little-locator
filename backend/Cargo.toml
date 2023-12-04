@@ -7,7 +7,7 @@ license = "MIT"
 
 [dependencies]
 ll_data = { path = "../data_types" }
-salvo = { version = "0.57", features = ["cors", "serve-static"] }
+salvo = { version = "0.57", features = ["cors", "serve-static", "websocket"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tokio = { version = "1", features = ["macros"] }

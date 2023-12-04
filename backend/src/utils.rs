@@ -49,8 +49,22 @@ impl<T> From<mpsc::SendError<T>> for ServerError {
   }
 }
 
+impl From<tokio::sync::TryLockError> for ServerError {
+  fn from(value: tokio::sync::TryLockError) -> Self {
+    value.to_string().into()
+  }
+}
+
+impl From<salvo::http::StatusError> for ServerError {
+  fn from(value: salvo::http::StatusError) -> Self {
+    value.to_string().into()
+  }
+}
+
 pub type MResult<T> = Result<T, ServerError>;
 
 // Ячейка для обмена данными между бэкендом и фронтендом.
-pub type DataQueue<T> = mpsc::Sender<T>;
-pub static DATA_QUEUE: OnceLock<DataQueue<Location>> = OnceLock::new();
+pub type DataTxQueue<T> = mpsc::Sender<T>;
+pub type DataRxQueue<T> = std::sync::Arc<tokio::sync::Mutex<mpsc::Receiver<T>>>;
+pub static DATA_TX_QUEUE: OnceLock<DataTxQueue<Location>> = OnceLock::new();
+pub static DATA_RX_QUEUE: OnceLock<DataRxQueue<Location>> = OnceLock::new();
