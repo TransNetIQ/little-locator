@@ -1,6 +1,6 @@
 //! Приложение для отрисовки местоположений.
 
-use egui::{pos2, vec2};
+use egui::{Pos2, pos2, vec2};
 use ewebsock::{WsEvent, WsMessage};
 use ll_data::Location;
 use std::collections::HashMap;
@@ -36,7 +36,8 @@ pub struct LittleLocatorApp {
   location_size: Option<[f32; 2]>,
   _data_sender: ewebsock::WsSender,
   data_receiver: ewebsock::WsReceiver,
-  current_locations: HashMap<String, Location>,
+  tracked_tags_locations: HashMap<String, (Vec<Location>, bool, bool)>,
+  tracked_tags_paths: HashMap<String, Vec<Pos2>>,
 }
 
 impl LittleLocatorApp {
@@ -75,7 +76,8 @@ impl LittleLocatorApp {
       location_image: Arc::new(Mutex::new(Option::None)),
       location_size: None,
       done: false,
-      current_locations: HashMap::new(),
+      tracked_tags_locations: HashMap::new(),
+      tracked_tags_paths: HashMap::new(),
     }
   }
 
@@ -103,19 +105,62 @@ impl LittleLocatorApp {
 
     let scale = vec2(painter.clip_rect().width() / location_size[0], painter.clip_rect().height() / location_size[1]);
 
-    for key in self.current_locations.keys() {
-      let icon_position_scaled = pos2(
-        painter.clip_rect().left() + self.current_locations[key].x * scale.x,
-        painter.clip_rect().top() + self.current_locations[key].y * scale.y
-      );
+    let keys = { self.tracked_tags_locations.keys().map(|k| k.clone()).collect::<Vec<String>>() };
+    let mut shapes = Vec::new();
+    for key in keys {
+      let tag = self.tracked_tags_locations.get(&key).unwrap();
 
-      painter.image(
-        tag_txr.id(),
-        egui::Rect::from_min_max(icon_position_scaled, icon_position_scaled + icon_size),
-        egui::Rect::from_min_max(pos2(0.0, 0.0), pos2(1.0, 1.0)),
-        egui::Color32::WHITE,
-      );
+      if tag.1 { // Если сказано отображать метку
+        let last_tag_position = tag.0.last().unwrap();
+
+        let icon_position_scaled = pos2(
+          painter.clip_rect().left() + last_tag_position.x * scale.x - icon_size.x / 2f32,
+          painter.clip_rect().top() + last_tag_position.y * scale.y - icon_size.y / 2f32
+        );
+
+        painter.image(
+          tag_txr.id(),
+          egui::Rect::from_min_max(icon_position_scaled, icon_position_scaled + icon_size),
+          egui::Rect::from_min_max(pos2(0.0, 0.0), pos2(1.0, 1.0)),
+          egui::Color32::WHITE,
+        );
+      }
+
+      if tag.2 { // Если сказано отображать путь метки
+
+        // Получаем вектор позиций, которые нам необходимо отрисовать
+        //
+        // Сейчас это выглядит как дублирующее поле, но впоследствии нам нужно будет
+        // фильтровать данные по времени.
+        let current_tag_line = match self.tracked_tags_paths.get_mut(&key) {
+          Some(line) => line,
+          None => {
+            self.tracked_tags_paths.insert(key.clone(), Vec::new());
+            self.tracked_tags_paths.get_mut(&key).unwrap()
+          }
+        };
+
+        // Дополняем путь, если в нём чего-то нет
+        let mut index = current_tag_line.len();
+        while index < tag.0.len() {
+          current_tag_line.push(pos2(tag.0[index].x, tag.0[index].y));
+          index += 1;
+        }
+
+        if current_tag_line.len() >= 2 {
+          let points: Vec<Pos2> = current_tag_line
+            .iter()
+            .map(|p| pos2(
+              painter.clip_rect().left() + p.x * scale.x,
+              painter.clip_rect().top() + p.y * scale.y
+            ))
+            .collect();
+          shapes.push(egui::Shape::line(points, egui::Stroke::new(2.0, egui::Color32::from_rgb(25, 200, 100))));
+        }
+      }
     }
+    painter.extend(shapes);
+
     response
   }
 
@@ -182,12 +227,23 @@ impl LittleLocatorApp {
         _ => continue,
       };
       if let Ok(new_location) = serde_json::from_str::<Location>(&location_json) {
-        self.current_locations.insert(new_location.id.clone(), new_location);
+        if !self.tracked_tags_locations.contains_key(&new_location.id) {
+          self.tracked_tags_locations.insert(new_location.id.clone(), (vec![new_location], true, false));
+        } else {
+          self.tracked_tags_locations.get_mut(&new_location.id).unwrap().0.push(new_location);
+        };
       }
     }
 
-    for key in self.current_locations.keys() {
-      ui.label(format!("{}", self.current_locations.get(key).unwrap()));
+    let keys = { self.tracked_tags_locations.keys().map(|k| k.clone()).collect::<Vec<String>>() };
+    for key in keys {
+      ui.horizontal(|ui| {
+        let tag = self.tracked_tags_locations.get_mut(&key).unwrap();
+
+        ui.label(format!("{}", tag.0.last().unwrap()));
+        ui.checkbox(&mut tag.1, "Отобразить метку");
+        ui.checkbox(&mut tag.2, "Показать путь");
+      });
     }
     egui::Frame::canvas(ui.style()).show(ui, |ui2| { self.paint_location(ui2); });
   }
