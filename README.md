@@ -24,17 +24,26 @@
 ```bash
 curl https://sh.rustup.rs -sSf | sh
 sudo apt-get install build-essential libgtk-3-dev libglib2.0-dev
+cargo install trunk
 ```
 
-## Сборка
+## Сборка фронтенда
 
 ```bash
-cd little-locator
+cd little-locator/frontend
+trunk build --release
+```
+
+## Сборка бэкенда
+
+```bash
+cd little-locator/backend
 cargo build --release
 ```
 
 ## Запуск
 
 ```bash
+cd little-locator/backend
 cargo run --release
 ```
