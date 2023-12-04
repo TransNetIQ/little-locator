@@ -47,3 +47,5 @@ cargo build --release
 cd little-locator/backend
 cargo run --release
 ```
+
+Сервер будет запущен на порту `5800`. [Переход в Web-UI](http://127.0.0.1:5800)
