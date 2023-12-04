@@ -55,20 +55,29 @@ pub struct LittleLocatorApp {
 impl LittleLocatorApp {
   /// Создаёт приложение.
   pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
+    #[cfg(not(target_arch = "wasm32"))]
+    let server_origin = "127.0.0.1";
+    #[cfg(target_arch = "wasm32")]
+    let server_origin = {
+      let window = web_sys::window().expect("no global `window` exists");
+      let document = window.document().expect("should have a document on window");
+      let location = document.location().expect("no location in the document");
+      location.hostname().expect("no hostname in document")
+    };
+
     cc.egui_ctx.set_visuals(egui::Visuals::light());
     egui_extras::install_image_loaders(&cc.egui_ctx);
 
     let pos_img = Arc::new(Mutex::new(Option::None));
     {
       let pos_img = pos_img.clone();
-      let request = ehttp::Request::get("http://127.0.0.1:5800/position_img");
+      let request = ehttp::Request::get(format!("http://{}:5800/position_img", server_origin));
       ehttp::fetch(request, move |result: ehttp::Result<ehttp::Response>| {
-        log::debug!("{:?}", result);
         *pos_img.lock().unwrap() = Some(result.unwrap().bytes.clone());
       });
     }
 
-    let (data_tx, data_rx) = ewebsock::connect("ws://127.0.0.1:5800/ws_updater").unwrap();
+    let (data_tx, data_rx) = ewebsock::connect(format!("ws://{}:5800/ws_updater", server_origin)).unwrap();
 
     Self {
       _data_sender: data_tx,
