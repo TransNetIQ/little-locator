@@ -199,6 +199,7 @@ impl LittleLocatorApp {
 
 impl eframe::App for LittleLocatorApp {
   fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+    ctx.request_repaint_after(std::time::Duration::from_millis(100));
     egui::CentralPanel::default().show(ctx, |ui| {
       if self.done { self.show_map_page(ui); }
       else { self.show_map_selection_page(ui); }
