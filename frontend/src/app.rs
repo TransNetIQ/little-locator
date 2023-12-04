@@ -1,10 +1,9 @@
 //! Приложение для отрисовки местоположений.
 
 use egui::{pos2, vec2};
-use ll_data::DATA_QUEUE;
+use ewebsock::{WsEvent, WsMessage};
 use ll_data::Location;
 use std::collections::HashMap;
-use std::sync::mpsc;
 use std::sync::{Arc, Mutex};
 
 #[cfg(target_arch = "wasm32")]
@@ -48,16 +47,16 @@ pub struct LittleLocatorApp {
   // Данные о местоположениях и карте
   location_image: Arc<Mutex<Option<Vec<u8>>>>,
   location_size: Option<[f32; 2]>,
-  data_receiver: mpsc::Receiver<Location>,
+  _data_sender: ewebsock::WsSender,
+  data_receiver: ewebsock::WsReceiver,
   current_locations: HashMap<String, Location>,
 }
 
 impl LittleLocatorApp {
   /// Создаёт приложение.
   pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
+    cc.egui_ctx.set_visuals(egui::Visuals::light());
     egui_extras::install_image_loaders(&cc.egui_ctx);
-    let (data_tx, data_rx) = mpsc::channel::<Location>();
-    DATA_QUEUE.set(Arc::new(Mutex::new(data_tx))).ok();
 
     let pos_img = Arc::new(Mutex::new(Option::None));
     {
@@ -69,7 +68,10 @@ impl LittleLocatorApp {
       });
     }
 
+    let (data_tx, data_rx) = ewebsock::connect("ws://127.0.0.1:5800/ws_updater").unwrap();
+
     Self {
+      _data_sender: data_tx,
       data_receiver: data_rx,
       l_input: "25.0".into(),
       w_input: "25.0".into(),
@@ -132,8 +134,16 @@ impl LittleLocatorApp {
       ui.text_edit_singleline(&mut self.w_input);
     });
 
-    if ui.button("Выбор карты…").clicked() {
-      let image_path = self.location_image.clone();
+    let map_selection_text = {
+      let map_image = self.location_image.clone();
+      if map_image.lock().unwrap().is_some() {
+        "Карта выбрана!"
+      } else {
+        "Выбор карты..."
+      }
+    };
+    if ui.button(map_selection_text).clicked() {
+      let map_image = self.location_image.clone();
       #[cfg(target_arch = "wasm32")] {
         wasm_bindgen_futures::spawn_local(async move {
           let file = AsyncFileDialog::new()
@@ -142,7 +152,7 @@ impl LittleLocatorApp {
             .pick_file()
             .await;
           let data = file.unwrap().read().await;
-          *image_path.lock().unwrap() = Some(data.clone());
+          *map_image.lock().unwrap() = Some(data.clone());
         });
       }
       #[cfg(not(target_arch = "wasm32"))] {
@@ -151,7 +161,7 @@ impl LittleLocatorApp {
           .set_directory("/")
           .pick_file();
         let data = std::fs::read(file.unwrap()).unwrap();
-        *image_path.lock().unwrap() = Some(data);
+        *map_image.lock().unwrap() = Some(data);
       }
     }
 
@@ -166,8 +176,18 @@ impl LittleLocatorApp {
 
   /// Показывает страницу с картой.
   pub fn show_map_page(&mut self, ui: &mut egui::Ui) {
-    while let Ok(new_location) = self.data_receiver.try_recv() {
-      self.current_locations.insert(new_location.id.clone(), new_location);
+    while let Some(event) = self.data_receiver.try_recv() {
+      let message = match event {
+        WsEvent::Message(message) => message,
+        _ => continue,
+      };
+      let location_json = match message {
+        WsMessage::Text(location_json) => location_json,
+        _ => continue,
+      };
+      if let Ok(new_location) = serde_json::from_str::<Location>(&location_json) {
+        self.current_locations.insert(new_location.id.clone(), new_location);
+      }
     }
 
     for key in self.current_locations.keys() {
