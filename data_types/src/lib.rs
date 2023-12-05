@@ -1,4 +1,4 @@
-use chrono::{serde::ts_microseconds, DateTime, Utc};
+use chrono::{serde::ts_seconds, DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 /// Данные о местоположении.
@@ -9,7 +9,7 @@ pub struct Location {
   pub y: f32,
   pub z: f32,
   #[serde(default = "curr_ts")]
-  #[serde(with = "ts_microseconds")]
+  #[serde(with = "ts_seconds")]
   pub ts: DateTime<Utc>,
 }
 
