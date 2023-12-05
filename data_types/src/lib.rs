@@ -19,6 +19,6 @@ fn curr_ts() -> DateTime<Utc> {
 
 impl std::fmt::Display for Location {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    f.write_str(&format!("Местоположение объекта #{}: x - {}, y - {}, z - {}; информация получена {}.", self.id, self.x, self.y, self.z, self.ts))
+    f.write_str(&format!("Местоположение объекта #{}: x - {:.3}, y - {:.3}, z - {:.3}; информация получена {}.", self.id, self.x, self.y, self.z, self.ts))
   }
 }
