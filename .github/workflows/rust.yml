@@ -1,0 +1,28 @@
+name: Rust
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup | Checkout
+        uses: actions/checkout@v2
+      - name: Setup | Rust
+        uses: ATiltedTree/setup-rust@v1
+        with:
+          rust-version: stable
+          components: clippy
+          targets: wasm32-unknown-unknown
+      - name: Lint Backend
+        run: cargo clippy --bin little-locator-backend --verbose
+      - name: Lint Frontend
+        run: cargo clippy --bin little-locator-frontend --target=wasm32-unknown-unknown --verbose
