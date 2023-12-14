@@ -1,8 +1,9 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
 mod app;
+mod utils;
 
-use crate::app::LittleLocatorApp;
+use crate::app::app_data::LittleLocatorApp;
 
 // Для запуска нативно.
 #[cfg(not(target_arch = "wasm32"))]

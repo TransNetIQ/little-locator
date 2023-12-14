@@ -6,8 +6,9 @@ authors = ["Klimenty Titov <aclo.create@gmail.com>"]
 license = "MIT"
 
 [dependencies]
+chrono = "0.4"
 egui = "0.24"
-egui_extras = { version = "0.24", features = ["all_loaders"] }
+egui_extras = { version = "0.24", features = ["all_loaders", "chrono"] }
 ewebsock = "0.4"
 eframe = { version = "0.24", default-features = false, features = ["default_fonts", "glow", "persistence"] }
 ehttp = "0.3"
