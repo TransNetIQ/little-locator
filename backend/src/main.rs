@@ -1,6 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod server;
+mod threaded_location_sender;
 mod utils;
 
 use salvo::{Listener, Router, Server, conn::TcpListener};
@@ -8,6 +9,7 @@ use salvo::cors::Cors;
 use salvo::http::Method;
 
 use crate::server::{get_position_img, post_new_location, ws_location_sender};
+use crate::threaded_location_sender::start_threaded_location_sender;
 use crate::utils::{DATA_TX_QUEUE, DATA_RX_QUEUE};
 
 /// Запускает программу.
@@ -19,6 +21,8 @@ async fn main() {
   DATA_TX_QUEUE.set(tx).unwrap();
   DATA_RX_QUEUE.set(std::sync::Arc::new(tokio::sync::Mutex::new(rx))).unwrap();
 
+  start_threaded_location_sender().await.unwrap();
+  
   let cors_handler = Cors::new()
     .allow_origin("*")
     .allow_methods(vec![Method::GET, Method::POST])

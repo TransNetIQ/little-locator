@@ -1,11 +1,12 @@
 //! Сервер, управляющий данными.
 
+use crate::utils::{MResult, DATA_TX_QUEUE, WS_TX_QUEUE};
+
 use ll_data::Location;
 use salvo::{Request, Response};
 use salvo::handler;
 use salvo::websocket::{Message, WebSocketUpgrade};
-
-use crate::utils::{MResult, DATA_TX_QUEUE, DATA_RX_QUEUE};
+use std::sync::mpsc;
 
 /// Добавляет новые данные о местоположении.
 #[handler]
@@ -28,16 +29,20 @@ pub async fn get_position_img(req: &mut Request, res: &mut Response) {
 pub async fn ws_location_sender(req: &mut Request, res: &mut Response) -> MResult<()> {
   WebSocketUpgrade::new()
     .upgrade(req, res, |mut ws| async move {
-      while { tokio::time::sleep(tokio::time::Duration::from_millis(100)).await; true } {
-        let queue = match DATA_RX_QUEUE.get().ok_or::<String>("Не удалось подключиться к очереди данных (на получение).".into()) {
+      // Регистрируем клиента для получения местоположений.
+      let (tx, rx) = mpsc::channel();
+      {
+        let ws_tx_queue = match WS_TX_QUEUE.get().ok_or::<String>("".into()) {
           Ok(queue) => queue,
           Err(_) => return,
         };
-        let guard = match queue.try_lock() {
-          Ok(guard) => guard,
-          Err(_) => return,
-        };
-        if let Ok(location) = guard.try_recv() {
+        let ws_tx_guard = ws_tx_queue.lock().await;
+        if ws_tx_guard.send(tx).is_err() { return }
+      }
+      // Ожидаем новые местоположения и отправляем клиенту.
+      loop {
+        tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
+        while let Ok(location) = rx.try_recv() {
           if ws.send(Message::text(serde_json::to_string(&location).unwrap())).await.is_err() { return; }
         }
       }

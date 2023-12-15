@@ -7,6 +7,7 @@ use std::sync::mpsc;
 use std::sync::OnceLock;
 
 /// Ошибка сервера.
+#[derive(Debug)]
 pub struct ServerError {
   pub msg: String
 }
@@ -66,5 +67,7 @@ pub type MResult<T> = Result<T, ServerError>;
 // Ячейка для обмена данными между бэкендом и фронтендом.
 pub type DataTxQueue<T> = mpsc::Sender<T>;
 pub type DataRxQueue<T> = std::sync::Arc<tokio::sync::Mutex<mpsc::Receiver<T>>>;
+pub type WsTxQueue<T> = std::sync::Arc<tokio::sync::Mutex<mpsc::Sender<mpsc::Sender<T>>>>;
 pub static DATA_TX_QUEUE: OnceLock<DataTxQueue<Location>> = OnceLock::new();
 pub static DATA_RX_QUEUE: OnceLock<DataRxQueue<Location>> = OnceLock::new();
+pub static WS_TX_QUEUE: OnceLock<WsTxQueue<Location>> = OnceLock::new();
