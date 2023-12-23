@@ -121,7 +121,8 @@ impl LittleLocatorApp {
     // Покажем основной интерфейс приложения
     ui.checkbox(&mut self.show_only_tags_list, "Показать метки");
     if self.show_only_tags_list {
-      let keys = { self.tracked_tags_locations.keys().cloned().collect::<Vec<String>>() };
+      let mut keys = { self.tracked_tags_locations.keys().cloned().collect::<Vec<String>>() };
+      keys.sort();
       for key in keys {
         ui.horizontal(|ui| {
           let tag = self.tracked_tags_locations.get_mut(&key).unwrap();
