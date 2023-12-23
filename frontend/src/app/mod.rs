@@ -11,9 +11,9 @@ use crate::utils::{HOURS, MINUTES, construct_datetime_utc};
 use chrono::{DateTime, Utc};
 use egui::{Pos2, pos2, vec2};
 use ewebsock::{WsEvent, WsMessage};
-use ll_data::{Location, MAX_QUEUE_LEN};
+use ll_data::{Location, MAX_QUEUE_LEN, MapSizes};
 use std::collections::VecDeque;
-use std::sync::Arc;
+use std::sync::{Arc, atomic::Ordering as AtomicOrdering};
 
 #[cfg(target_arch = "wasm32")]
 use rfd::AsyncFileDialog;
@@ -25,7 +25,7 @@ impl eframe::App for LittleLocatorApp {
   fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
     ctx.request_repaint_after(std::time::Duration::from_millis(100));
     egui::CentralPanel::default().show(ctx, |ui| {
-      if !self.done { self.show_map_selection_page(ui); }
+      if !self.done.load(AtomicOrdering::Relaxed) { self.show_map_selection_page(ui); }
       else { self.show_map_page(ui); }
     });
   }
@@ -78,8 +78,8 @@ impl LittleLocatorApp {
       let l = self.l_input.parse::<f32>();
       let w = self.w_input.parse::<f32>();
       if l.is_err() || w.is_err() { return }
-      self.location_size = Some([l.unwrap(), w.unwrap()]);
-      self.done = true;
+      *self.location_size.lock().unwrap() = Some(MapSizes { l: l.unwrap(), w: w.unwrap() });
+      self.done.store(true, AtomicOrdering::Relaxed);
     }
   }
   
@@ -156,10 +156,11 @@ impl LittleLocatorApp {
       Default::default(),
     );
 
-    let location_size = self.location_size.as_ref().unwrap();
+    let location_sizes_guard = self.location_size.lock().unwrap();
+    let location_size = location_sizes_guard.as_ref().unwrap();
     let icon_size = vec2(20.0, 20.0);
 
-    let scale = vec2(painter.clip_rect().width() / location_size[0], painter.clip_rect().height() / location_size[1]);
+    let scale = vec2(painter.clip_rect().width() / location_size.l, painter.clip_rect().height() / location_size.w);
 
     let keys = { self.tracked_tags_locations.keys().cloned().collect::<Vec<String>>() };
     let mut shapes = Vec::new();

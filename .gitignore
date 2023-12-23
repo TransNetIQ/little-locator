@@ -1,4 +1,5 @@
 /dist
+/backend/config.json
 /frontend/dist
 /target
 Cargo.lock

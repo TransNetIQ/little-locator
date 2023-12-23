@@ -1,12 +1,13 @@
 //! Сервер, управляющий данными.
 
-use crate::utils::{MResult, DATA_TX_QUEUE, WS_TX_QUEUE};
+use crate::utils::{MResult, DATA_TX_QUEUE, WS_TX_QUEUE, AppConfig};
 
-use ll_data::Location;
+use ll_data::{Location, MapSizes};
 use salvo::{Request, Response};
 use salvo::handler;
 use salvo::websocket::{Message, WebSocketUpgrade};
 use std::sync::mpsc;
+use tokio::fs;
 
 /// Добавляет новые данные о местоположении.
 #[handler]
@@ -48,5 +49,21 @@ pub async fn ws_location_sender(req: &mut Request, res: &mut Response) -> MResul
       }
     })
     .await?;
+  Ok(())
+}
+
+/// Отправляет на фронтенд данные о наличии конфигурации.
+#[handler]
+pub async fn get_config(res: &mut Response) -> MResult<()> {
+  let app_config = serde_json::from_str::<AppConfig>(&fs::read_to_string("config.json").await?)?;
+  res.render(salvo::writing::Json(MapSizes { l: app_config.length, w: app_config.width }));
+  Ok(())
+}
+
+/// Отправляет на фронтенд карту расположения.
+#[handler]
+pub async fn get_location_img(req: &mut Request, res: &mut Response) -> MResult<()> {
+  let app_config = serde_json::from_str::<AppConfig>(&fs::read_to_string("config.json").await?)?;
+  salvo::fs::NamedFile::builder(app_config.image_filepath).send(req.headers(), res).await;
   Ok(())
 }

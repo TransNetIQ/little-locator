@@ -1,6 +1,13 @@
 use chrono::{serde::ts_seconds, DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+/// Данные о размерах карты.
+#[derive(Deserialize, Serialize)]
+pub struct MapSizes {
+  pub l: f32,
+  pub w: f32,
+}
+
 /// Данные о местоположении.
 #[derive(Deserialize, Serialize, Clone)]
 pub struct Location {

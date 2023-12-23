@@ -8,7 +8,7 @@ use salvo::{Listener, Router, Server, conn::TcpListener};
 use salvo::cors::Cors;
 use salvo::http::Method;
 
-use crate::server::{get_position_img, post_new_location, ws_location_sender};
+use crate::server::{get_position_img, post_new_location, ws_location_sender, get_config, get_location_img};
 use crate::threaded_location_sender::start_threaded_location_sender;
 use crate::utils::{DATA_TX_QUEUE, DATA_RX_QUEUE};
 
@@ -31,6 +31,16 @@ async fn main() {
   let router = Router::with_hoop(cors_handler)
     .post(post_new_location)
     .options(salvo::handler::empty())
+    .push(
+      Router::with_path("config")
+        .get(get_config)
+        .options(salvo::handler::empty())
+    )
+    .push(
+      Router::with_path("location_img")
+        .get(get_location_img)
+        .options(salvo::handler::empty())
+    )
     .push(
       Router::with_path("position_img")
         .get(get_position_img)

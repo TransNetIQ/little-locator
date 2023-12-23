@@ -3,8 +3,17 @@
 use ll_data::Location;
 use salvo::{Depot, Request, Response, http::{ParseError, StatusCode}, Writer};
 use salvo::async_trait;
+use serde::{Deserialize, Serialize};
 use std::sync::mpsc;
 use std::sync::OnceLock;
+
+/// Конфигурация приложения.
+#[derive(Deserialize, Serialize)]
+pub struct AppConfig {
+  pub image_filepath: String,
+  pub length: f32,
+  pub width: f32,
+}
 
 /// Ошибка сервера.
 #[derive(Debug)]
@@ -58,6 +67,18 @@ impl From<tokio::sync::TryLockError> for ServerError {
 
 impl From<salvo::http::StatusError> for ServerError {
   fn from(value: salvo::http::StatusError) -> Self {
+    value.to_string().into()
+  }
+}
+
+impl From<std::io::Error> for ServerError {
+  fn from(value: std::io::Error) -> Self {
+    value.to_string().into()
+  }
+}
+
+impl From<serde_json::Error> for ServerError {
+  fn from(value: serde_json::Error) -> Self {
     value.to_string().into()
   }
 }

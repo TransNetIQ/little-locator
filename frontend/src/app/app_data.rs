@@ -1,9 +1,9 @@
 use crate::utils::LimitDateTime;
 
 use egui::Pos2;
-use ll_data::Location;
+use ll_data::{Location, MapSizes};
 use std::collections::{HashMap, VecDeque};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, atomic::AtomicBool};
 
 /// Структура приложения.
 pub struct LittleLocatorApp {
@@ -12,12 +12,12 @@ pub struct LittleLocatorApp {
   // Поля страницы выбора карты
   pub l_input: String,
   pub w_input: String,
-  pub done: bool,
+  pub done: Arc<AtomicBool>,
   // Данные картинок
   pub position_image_bytes: Arc<Mutex<Option<Vec<u8>>>>,
   // Данные о местоположениях и карте
   pub location_image: Arc<Mutex<Option<Vec<u8>>>>,
-  pub location_size: Option<[f32; 2]>,
+  pub location_size: Arc<Mutex<Option<MapSizes>>>,
   pub _data_sender: ewebsock::WsSender,
   pub data_receiver: ewebsock::WsReceiver,
   pub tracked_tags_locations: HashMap<String, (VecDeque<Location>, bool, bool, usize)>,
