@@ -166,6 +166,16 @@ impl LittleLocatorApp {
           egui::Rect::from_min_max(pos2(0.0, 0.0), pos2(1.0, 1.0)),
           egui::Color32::WHITE,
         );
+        
+        let text_position = icon_position_scaled + icon_size / 2f32 + vec2(0f32, icon_size.y);
+        
+        painter.text(
+          text_position,
+          egui::Align2::CENTER_CENTER,
+          last_tag_position.id.clone(),
+          egui::FontId::default(),
+          egui::Color32::BLACK
+        );
       }
 
       if tag.2 { // Если сказано отображать путь метки
