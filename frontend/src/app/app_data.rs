@@ -27,4 +27,6 @@ pub struct LittleLocatorApp {
   pub limited: bool,
   pub current_limit: LimitDateTime,
   pub previous_limit: LimitDateTime,
+  // Показать список меток или карту
+  pub show_only_tags_list: bool,
 }

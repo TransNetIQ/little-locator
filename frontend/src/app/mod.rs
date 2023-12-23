@@ -110,17 +110,22 @@ impl LittleLocatorApp {
       }
     }
 
-    let keys = { self.tracked_tags_locations.keys().cloned().collect::<Vec<String>>() };
-    for key in keys {
-      ui.horizontal(|ui| {
-        let tag = self.tracked_tags_locations.get_mut(&key).unwrap();
+    // Покажем основной интерфейс приложения
+    ui.checkbox(&mut self.show_only_tags_list, "Показать метки");
+    if self.show_only_tags_list {
+      let keys = { self.tracked_tags_locations.keys().cloned().collect::<Vec<String>>() };
+      for key in keys {
+        ui.horizontal(|ui| {
+          let tag = self.tracked_tags_locations.get_mut(&key).unwrap();
 
         ui.label(format!("{}", tag.0.last().unwrap()));
-        ui.checkbox(&mut tag.1, "Отобразить метку");
-        ui.checkbox(&mut tag.2, "Показать путь");
-      });
+          ui.checkbox(&mut tag.1, "Отобразить метку");
+          ui.checkbox(&mut tag.2, "Показать путь");
+        });
+      }
+    } else {
+      egui::Frame::canvas(ui.style()).show(ui, |ui2| { self.paint_location(ui2); });
     }
-    egui::Frame::canvas(ui.style()).show(ui, |ui2| { self.paint_location(ui2); });
   }
   
   /// Отображает карту здания и текущее местоположение объектов.
