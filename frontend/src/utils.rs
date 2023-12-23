@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc, NaiveDate};
+use chrono::{NaiveDate, NaiveDateTime};
 
 pub const HOURS: [&'static str; 24] = ["00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23"];
 
@@ -6,7 +6,7 @@ pub const MINUTES: [&'static str; 60] = ["00", "01", "02", "03", "04", "05", "06
 
 pub type LimitDateTime = (NaiveDate, usize, usize);
 
-pub fn construct_datetime_utc(limit_dt: &LimitDateTime) -> DateTime<Utc> {
+pub fn construct_datetime_utc(limit_dt: &LimitDateTime) -> NaiveDateTime {
   limit_dt.0
     .and_hms_opt(
       limit_dt.1 as u32,
@@ -14,5 +14,4 @@ pub fn construct_datetime_utc(limit_dt: &LimitDateTime) -> DateTime<Utc> {
       0u32
     )
     .unwrap()
-    .and_utc()
 }

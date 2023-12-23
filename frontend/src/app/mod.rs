@@ -8,7 +8,6 @@ use crate::app::app_data::LittleLocatorApp;
 use crate::app::utils::load_image_from_memory;
 use crate::utils::{HOURS, MINUTES, construct_datetime_utc};
 
-use chrono::{DateTime, Utc};
 use egui::{Pos2, pos2, vec2};
 use ewebsock::{WsEvent, WsMessage};
 use ll_data::{Location, MAX_QUEUE_LEN, MapSizes};
@@ -204,7 +203,7 @@ impl LittleLocatorApp {
           }
         };
         
-        let limit_time: DateTime<Utc> = construct_datetime_utc(&self.current_limit);
+        let limit_time = construct_datetime_utc(&self.current_limit).timestamp_millis();
         // Если сменились настройки времени, - перерисовываем путь меток
         if self.limit_tag_path && (self.previous_limit != self.current_limit || !self.limited) {
           self.limited = true;
