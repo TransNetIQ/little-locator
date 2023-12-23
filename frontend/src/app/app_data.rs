@@ -2,7 +2,7 @@ use crate::utils::LimitDateTime;
 
 use egui::Pos2;
 use ll_data::Location;
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::sync::{Arc, Mutex};
 
 /// Структура приложения.
@@ -20,8 +20,8 @@ pub struct LittleLocatorApp {
   pub location_size: Option<[f32; 2]>,
   pub _data_sender: ewebsock::WsSender,
   pub data_receiver: ewebsock::WsReceiver,
-  pub tracked_tags_locations: HashMap<String, (Vec<Location>, bool, bool, usize)>,
-  pub tracked_tags_paths: HashMap<String, Vec<Pos2>>,
+  pub tracked_tags_locations: HashMap<String, (VecDeque<Location>, bool, bool, usize)>,
+  pub tracked_tags_paths: HashMap<String, VecDeque<Pos2>>,
   // Ограничения по отрисовке трека
   pub limit_tag_path: bool,
   pub limited: bool,

@@ -13,7 +13,7 @@ pub struct Location {
   pub ts: DateTime<Utc>,
 }
 
-fn curr_ts() -> DateTime<Utc> {
+pub fn curr_ts() -> DateTime<Utc> {
   chrono::Utc::now()
 }
 
@@ -22,3 +22,5 @@ impl std::fmt::Display for Location {
     f.write_str(&format!("Местоположение объекта #{}: x - {:.3}, y - {:.3}, z - {:.3}; информация получена {}.", self.id, self.x, self.y, self.z, self.ts))
   }
 }
+
+pub const MAX_QUEUE_LEN: usize = 1024;

@@ -11,7 +11,8 @@ use crate::utils::{HOURS, MINUTES, construct_datetime_utc};
 use chrono::{DateTime, Utc};
 use egui::{Pos2, pos2, vec2};
 use ewebsock::{WsEvent, WsMessage};
-use ll_data::Location;
+use ll_data::{Location, MAX_QUEUE_LEN};
+use std::collections::VecDeque;
 use std::sync::Arc;
 
 #[cfg(target_arch = "wasm32")]
@@ -91,7 +92,8 @@ impl LittleLocatorApp {
       egui::ComboBox::from_label("часов").show_index(ui, &mut self.current_limit.1, 24usize, |i| HOURS[i]);
       egui::ComboBox::from_label("минут").show_index(ui, &mut self.current_limit.2, 60usize, |i| MINUTES[i]);
     });
-    
+
+    // Обработаем входящие местоположения
     while let Some(event) = self.data_receiver.try_recv() {
       let message = match event {
         WsEvent::Message(message) => message,
@@ -103,9 +105,15 @@ impl LittleLocatorApp {
       };
       if let Ok(new_location) = serde_json::from_str::<Location>(&location_json) {
         if !self.tracked_tags_locations.contains_key(&new_location.id) {
-          self.tracked_tags_locations.insert(new_location.id.clone(), (vec![new_location], true, false, 0usize));
+          let mut new_vecdeque = VecDeque::new();
+          let new_location_id = new_location.id.clone();
+          new_vecdeque.push_back(new_location);
+          self.tracked_tags_locations.insert(new_location_id, (new_vecdeque, true, false, 1usize));
         } else {
-          self.tracked_tags_locations.get_mut(&new_location.id).unwrap().0.push(new_location);
+          let locations = self.tracked_tags_locations.get_mut(&new_location.id).unwrap();
+          if locations.0.len() > MAX_QUEUE_LEN { locations.0.pop_front(); }
+          locations.0.push_back(new_location);
+          locations.3 += 1usize;
         };
       }
     }
@@ -118,7 +126,7 @@ impl LittleLocatorApp {
         ui.horizontal(|ui| {
           let tag = self.tracked_tags_locations.get_mut(&key).unwrap();
 
-        ui.label(format!("{}", tag.0.last().unwrap()));
+          ui.label(format!("{}", tag.0.back().unwrap()));
           ui.checkbox(&mut tag.1, "Отобразить метку");
           ui.checkbox(&mut tag.2, "Показать путь");
         });
@@ -158,7 +166,7 @@ impl LittleLocatorApp {
       let tag = self.tracked_tags_locations.get_mut(&key).unwrap();
 
       if tag.1 { // Если сказано отображать метку
-        let last_tag_position = tag.0.last().unwrap();
+        let last_tag_position = tag.0.back().unwrap();
 
         let icon_position_scaled = pos2(
           painter.clip_rect().left() + last_tag_position.x * scale.x - icon_size.x / 2f32,
@@ -189,33 +197,36 @@ impl LittleLocatorApp {
         let current_tag_line = match self.tracked_tags_paths.get_mut(&key) {
           Some(line) => line,
           None => {
-            self.tracked_tags_paths.insert(key.clone(), Vec::new());
+            self.tracked_tags_paths.insert(key.clone(), VecDeque::new());
             self.tracked_tags_paths.get_mut(&key).unwrap()
           }
         };
         
+        let limit_time: DateTime<Utc> = construct_datetime_utc(&self.current_limit);
         // Если сменились настройки времени, - перерисовываем путь меток
         if self.limit_tag_path && (self.previous_limit != self.current_limit || !self.limited) {
           self.limited = true;
-          let limit_time: DateTime<Utc> = construct_datetime_utc(&self.current_limit);
           current_tag_line.clear();
-          tag.3 = 0;
           for pos in &tag.0 {
-            if pos.ts >= limit_time { current_tag_line.push(pos2(pos.x, pos.y)); }
-            tag.3 += 1;
+            if pos.ts >= limit_time { current_tag_line.push_back(pos2(pos.x, pos.y)); }
           }
+          tag.3 = 0;
         } else if !self.limit_tag_path {
           self.limited = false;
           current_tag_line.clear();
-          tag.3 = 0;
+          tag.3 = tag.0.len();
         }
         
         // Дополняем путь меток, если в нём чего-то нет
         let index = &mut tag.3;
-        while *index < tag.0.len() {
-          current_tag_line.push(pos2(tag.0[*index].x, tag.0[*index].y));
-          *index += 1;
+        while *index > 0 {
+          let curr_tag = &tag.0[tag.0.len() - *index];
+          if (self.limit_tag_path && curr_tag.ts >= limit_time) || !self.limit_tag_path {
+            current_tag_line.push_back(pos2(curr_tag.x, curr_tag.y));
+          }
+          *index -= 1usize;
         }
+        while current_tag_line.len() > MAX_QUEUE_LEN { current_tag_line.pop_front(); }
 
         if current_tag_line.len() >= 2 {
           let points: Vec<Pos2> = current_tag_line
