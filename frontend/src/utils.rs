@@ -6,7 +6,7 @@ pub const MINUTES: [&'static str; 60] = ["00", "01", "02", "03", "04", "05", "06
 
 pub type LimitDateTime = (NaiveDate, usize, usize);
 
-pub fn construct_datetime_utc(limit_dt: &LimitDateTime) -> NaiveDateTime {
+pub fn construct_dt(limit_dt: &LimitDateTime) -> NaiveDateTime {
   limit_dt.0
     .and_hms_opt(
       limit_dt.1 as u32,

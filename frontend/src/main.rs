@@ -25,7 +25,10 @@ fn main() -> eframe::Result<()> {
 #[cfg(target_arch = "wasm32")]
 fn main() {
   // Redirect `log` message to `console.log` and friends:
-  eframe::WebLogger::init(log::LevelFilter::Debug).ok();
+  #[cfg(debug_assertions)]
+  wasm_logger::init(wasm_logger::Config::default());
+  #[cfg(not(debug_assertions))]
+  wasm_logger::init(wasm_logger::Config::new(log::Level::Warn));
 
   let web_options = eframe::WebOptions::default();
 

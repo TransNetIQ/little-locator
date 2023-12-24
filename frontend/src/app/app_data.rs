@@ -24,7 +24,7 @@ pub struct LittleLocatorApp {
   pub tracked_tags_paths: HashMap<String, VecDeque<Pos2>>,
   // Ограничения по отрисовке трека
   pub limit_tag_path: bool,
-  pub limited: bool,
+  pub limit_online: bool,
   pub current_limit: LimitDateTime,
   pub previous_limit: LimitDateTime,
   // Показать список меток или карту

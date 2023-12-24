@@ -81,7 +81,7 @@ impl LittleLocatorApp {
       tracked_tags_locations: HashMap::new(),
       tracked_tags_paths: HashMap::new(),
       limit_tag_path: false,
-      limited: false,
+      limit_online: false,
       current_limit: (Local::now().date_naive(), 0, 0),
       previous_limit: (Local::now().date_naive(), 0, 0),
       show_only_tags_list: false,

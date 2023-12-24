@@ -2,15 +2,17 @@
 
 pub mod app_data;
 pub mod constructor;
+pub mod path_drawer;
 pub mod utils;
 
 use crate::app::app_data::LittleLocatorApp;
 use crate::app::utils::load_image_from_memory;
-use crate::utils::{HOURS, MINUTES, construct_datetime_utc};
+use crate::utils::{HOURS, MINUTES, construct_dt};
 
 use egui::{Pos2, pos2, vec2};
 use ewebsock::{WsEvent, WsMessage};
 use ll_data::{Location, MAX_QUEUE_LEN, MapSizes};
+use log::debug;
 use std::collections::VecDeque;
 use std::sync::{Arc, atomic::Ordering as AtomicOrdering};
 
@@ -85,7 +87,9 @@ impl LittleLocatorApp {
   /// Показывает страницу с картой.
   pub fn show_map_page(&mut self, ui: &mut egui::Ui) {
     ui.horizontal(|ui| {
-      ui.checkbox(&mut self.limit_tag_path, "Ограничить путь метки по времени");
+      if ui.checkbox(&mut self.limit_tag_path, "Ограничить путь метки по времени").clicked() {
+        self.limit_online = false;
+      };
       ui.add(egui_extras::DatePickerButton::new(&mut self.current_limit.0));
       ui.label("С");
       egui::ComboBox::from_label("часов").show_index(ui, &mut self.current_limit.1, 24usize, |i| HOURS[i]);
@@ -141,27 +145,46 @@ impl LittleLocatorApp {
     let (response, painter) = ui.allocate_painter(ui.available_size_before_wrap(), egui::Sense::drag());
 
     // Рисуем здание
-    let loc_img = self.location_image.lock().unwrap();
-    egui::Image::from_bytes("bytes://location_map", loc_img.as_ref().unwrap().clone())
+    egui::Image::from_bytes(
+      "bytes://location_map",
+      self.location_image
+        .lock().unwrap()
+        .as_ref().unwrap()
+        .clone())
       .tint(egui::Color32::WHITE)
       .fit_to_original_size(1f32)
       .paint_at(ui, painter.clip_rect());
 
     // Рисуем местоположения объектов
-    let pos_img = self.position_image_bytes.lock().unwrap();
     let tag_txr = ui.ctx().load_texture(
       "tag",
-      egui::ImageData::Color(Arc::new(load_image_from_memory(pos_img.as_ref().unwrap()).unwrap())),
+      egui::ImageData::Color(
+        Arc::new(load_image_from_memory(
+          self.position_image_bytes
+            .lock().unwrap()
+            .as_ref().unwrap()
+          ).unwrap())),
       Default::default(),
     );
 
-    let location_sizes_guard = self.location_size.lock().unwrap();
-    let location_size = location_sizes_guard.as_ref().unwrap();
+    let location_size;
+    {
+      let location_sizes_guard = self.location_size.lock().unwrap();
+      location_size = (*location_sizes_guard.as_ref().unwrap()).clone();
+    }
     let icon_size = vec2(20.0, 20.0);
 
     let scale = vec2(painter.clip_rect().width() / location_size.l, painter.clip_rect().height() / location_size.w);
 
-    let keys = { self.tracked_tags_locations.keys().cloned().collect::<Vec<String>>() };
+    // Обновляем значения лимитов времени
+    if self.previous_limit != self.current_limit {
+      self.previous_limit = self.current_limit;
+      self.limit_online = false; // Переменная, которая отвечает за перерисовку путей
+      debug!("Needed to redraw with time = {}", construct_dt(&self.current_limit));
+    }
+    let limit_time = construct_dt(&self.current_limit).timestamp_millis();
+    
+    let keys = self.tracked_tags_locations.keys().cloned().collect::<Vec<String>>();
     let mut shapes = Vec::new();
     for key in keys {
       let tag = self.tracked_tags_locations.get_mut(&key).unwrap();
@@ -193,42 +216,9 @@ impl LittleLocatorApp {
       }
 
       if tag.2 { // Если сказано отображать путь метки
-
-        // Получаем вектор позиций, которые нам необходимо отрисовать
-        let current_tag_line = match self.tracked_tags_paths.get_mut(&key) {
-          Some(line) => line,
-          None => {
-            self.tracked_tags_paths.insert(key.clone(), VecDeque::new());
-            self.tracked_tags_paths.get_mut(&key).unwrap()
-          }
-        };
+        self.redraw_tag_path_with_time_limit(&key, limit_time);
         
-        let limit_time = construct_datetime_utc(&self.current_limit).timestamp_millis();
-        // Если сменились настройки времени, - перерисовываем путь меток
-        if self.limit_tag_path && (self.previous_limit != self.current_limit || !self.limited) {
-          self.limited = true;
-          current_tag_line.clear();
-          for pos in &tag.0 {
-            if pos.ts >= limit_time { current_tag_line.push_back(pos2(pos.x, pos.y)); }
-          }
-          tag.3 = 0;
-        } else if !self.limit_tag_path {
-          self.limited = false;
-          current_tag_line.clear();
-          tag.3 = tag.0.len();
-        }
-        
-        // Дополняем путь меток, если в нём чего-то нет
-        let index = &mut tag.3;
-        while *index > 0 {
-          let curr_tag = &tag.0[tag.0.len() - *index];
-          if (self.limit_tag_path && curr_tag.ts >= limit_time) || !self.limit_tag_path {
-            current_tag_line.push_back(pos2(curr_tag.x, curr_tag.y));
-          }
-          *index -= 1usize;
-        }
-        while current_tag_line.len() > MAX_QUEUE_LEN { current_tag_line.pop_front(); }
-
+        let current_tag_line = self.tracked_tags_paths.get(&key).unwrap();
         if current_tag_line.len() >= 2 {
           let points: Vec<Pos2> = current_tag_line
             .iter()
@@ -241,9 +231,8 @@ impl LittleLocatorApp {
         }
       }
     }
-    if self.previous_limit != self.current_limit {
-      self.previous_limit = self.current_limit;
-    }
+    
+    self.limit_online = true;
     
     painter.extend(shapes);
 

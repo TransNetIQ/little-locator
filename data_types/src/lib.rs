@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Данные о размерах карты.
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Clone)]
 pub struct MapSizes {
   pub l: f32,
   pub w: f32,
