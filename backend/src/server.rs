@@ -2,11 +2,12 @@
 
 use crate::utils::{MResult, DATA_TX_QUEUE, WS_TX_QUEUE, AppConfig};
 
-use ll_data::{Location, MapSizes};
+use ll_data::{Location, MapSizes, MAX_QUEUE_LEN};
+use log::debug;
 use salvo::{Request, Response};
 use salvo::handler;
 use salvo::websocket::{Message, WebSocketUpgrade};
-use std::sync::mpsc;
+use tokio::sync::mpsc;
 use tokio::fs;
 
 /// Добавляет новые данные о местоположении.
@@ -15,7 +16,9 @@ pub async fn post_new_location(req: &mut Request) -> MResult<&'static str> {
   let data = req.parse_json::<Location>().await?;
   DATA_TX_QUEUE
     .get().ok_or::<String>("Не удалось подключиться к очереди данных (на запись).".into())?
-    .send(data)?;
+    .send(data)
+    .await?;
+  debug!("Got new location, inserted into DATA_QUEUE");
   Ok("Gotcha!")
 }
 
@@ -31,21 +34,22 @@ pub async fn ws_location_sender(req: &mut Request, res: &mut Response) -> MResul
   WebSocketUpgrade::new()
     .upgrade(req, res, |mut ws| async move {
       // Регистрируем клиента для получения местоположений.
-      let (tx, rx) = mpsc::channel();
+      let (tx, mut rx) = mpsc::channel(MAX_QUEUE_LEN);
       {
-        let ws_tx_queue = match WS_TX_QUEUE.get().ok_or::<String>("".into()) {
+        let ws_tx_queue = match WS_TX_QUEUE.get()
+          .ok_or::<String>("".into())
+        {
           Ok(queue) => queue,
           Err(_) => return,
         };
         let ws_tx_guard = ws_tx_queue.lock().await;
-        if ws_tx_guard.send(tx).is_err() { return }
+        if ws_tx_guard.send(tx).await.is_err() { return }
+        debug!("Sent new client to WS_QUEUE");
       }
       // Ожидаем новые местоположения и отправляем клиенту.
-      loop {
-        tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
-        while let Ok(location) = rx.try_recv() {
-          if ws.send(Message::text(serde_json::to_string(&location).unwrap())).await.is_err() { return; }
-        }
+      while let Some(location) = rx.recv().await {
+        if ws.send(Message::text(serde_json::to_string(&location).unwrap())).await.is_err() { return; }
+        debug!("Sent new location from DATA_QUEUE over WebSocket");
       }
     })
     .await?;

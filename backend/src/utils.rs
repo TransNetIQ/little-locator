@@ -4,8 +4,8 @@ use ll_data::Location;
 use salvo::{Depot, Request, Response, http::{ParseError, StatusCode}, Writer};
 use salvo::async_trait;
 use serde::{Deserialize, Serialize};
-use std::sync::mpsc;
-use std::sync::OnceLock;
+use std::sync::{Arc, OnceLock};
+use tokio::sync::{mpsc, Mutex};
 
 /// Конфигурация приложения.
 #[derive(Deserialize, Serialize)]
@@ -53,8 +53,8 @@ impl<T> From<std::sync::PoisonError<T>> for ServerError {
   }
 }
 
-impl<T> From<mpsc::SendError<T>> for ServerError {
-  fn from(value: mpsc::SendError<T>) -> Self {
+impl<T> From<mpsc::error::SendError<T>> for ServerError {
+  fn from(value: mpsc::error::SendError<T>) -> Self {
     value.to_string().into()
   }
 }
@@ -87,8 +87,8 @@ pub type MResult<T> = Result<T, ServerError>;
 
 // Ячейка для обмена данными между бэкендом и фронтендом.
 pub type DataTxQueue<T> = mpsc::Sender<T>;
-pub type DataRxQueue<T> = std::sync::Arc<tokio::sync::Mutex<mpsc::Receiver<T>>>;
-pub type WsTxQueue<T> = std::sync::Arc<tokio::sync::Mutex<mpsc::Sender<mpsc::Sender<T>>>>;
+pub type DataRxQueue<T> = Arc<Mutex<mpsc::Receiver<T>>>;
+pub type WsTxQueue<T> = Arc<Mutex<mpsc::Sender<mpsc::Sender<T>>>>;
 pub static DATA_TX_QUEUE: OnceLock<DataTxQueue<Location>> = OnceLock::new();
 pub static DATA_RX_QUEUE: OnceLock<DataRxQueue<Location>> = OnceLock::new();
 pub static WS_TX_QUEUE: OnceLock<WsTxQueue<Location>> = OnceLock::new();
