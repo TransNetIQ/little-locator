@@ -18,7 +18,7 @@ impl LittleLocatorApp {
       location.hostname().expect("no hostname in document")
     };
 
-    cc.egui_ctx.set_visuals(egui::Visuals::light());
+    cc.egui_ctx.set_visuals(egui::Visuals::dark());
     egui_extras::install_image_loaders(&cc.egui_ctx);
 
     let pos_img = Arc::new(Mutex::new(Option::None));
