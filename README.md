@@ -30,7 +30,19 @@
 {
   "image_filepath": "../frontend/assets/test_cropped.jpg",
   "length": 25.0,
-  "width": 25.0
+  "width": 25.0,
+  "anchors": [
+    {
+      "x": 3.0,
+      "y": 3.0,
+      "z": 1.0
+    },
+    {
+      "x": 22.0,
+      "y": 3.0,
+      "z": 1.0
+    }
+  ]
 }
 ```
 
