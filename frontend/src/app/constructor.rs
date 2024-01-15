@@ -1,7 +1,7 @@
 use crate::app::app_data::LittleLocatorApp;
 
 use chrono::Local;
-use ll_data::{MapSizes, Pos3};
+use ll_data::{MapSizes, AnchorPos};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex, atomic::{AtomicBool, Ordering as AtomicOrdering}};
 
@@ -78,7 +78,7 @@ impl LittleLocatorApp {
                 Err(_) => return,
                 Ok(resp) => {
                   let bytes = resp.bytes.clone();
-                  let anchors_vec = match serde_json::from_slice::<Vec<Pos3>>(&bytes) {
+                  let anchors_vec = match serde_json::from_slice::<Vec<AnchorPos>>(&bytes) {
                     Err(_) => return,
                     Ok(v) => v,
                   };

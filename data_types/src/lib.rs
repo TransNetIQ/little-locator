@@ -20,7 +20,8 @@ pub struct Location {
 
 /// Позиция в трёхмерном пространстве.
 #[derive(Deserialize, Serialize, Clone)]
-pub struct Pos3 {
+pub struct AnchorPos {
+  pub id: String,
   pub x: f32,
   pub y: f32,
   pub z: f32,

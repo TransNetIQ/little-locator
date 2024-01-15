@@ -187,22 +187,34 @@ impl LittleLocatorApp {
 
     let scale = vec2(painter.clip_rect().width() / location_size.l, painter.clip_rect().height() / location_size.w);
 
-    // 
+    // Отрисовка анкеров
     {
-      let anchors_guard = self.anchors.lock().unwrap();
-      let anchors = anchors_guard.as_ref().unwrap();
-      for anchor in anchors {
-        let icon_position_scaled = pos2(
-          painter.clip_rect().left() + anchor.x * scale.x - icon_size.x / 2f32,
-          painter.clip_rect().top() + anchor.y * scale.y - icon_size.y / 2f32
-        );
-        
-        painter.image(
-          anchor_txr.id(),
-          egui::Rect::from_min_max(icon_position_scaled, icon_position_scaled + icon_size),
-          egui::Rect::from_min_max(pos2(0.0, 0.0), pos2(1.0, 1.0)),
-          egui::Color32::WHITE,
-        );
+      if let Ok(anchors_guard) = self.anchors.lock() {
+        if let Some(anchors) = anchors_guard.as_ref() {
+          for anchor in anchors {
+            let icon_position_scaled = pos2(
+              painter.clip_rect().left() + anchor.x * scale.x - icon_size.x / 2f32,
+              painter.clip_rect().top() + anchor.y * scale.y - icon_size.y / 2f32
+            );
+            
+            painter.image(
+              anchor_txr.id(),
+              egui::Rect::from_min_max(icon_position_scaled, icon_position_scaled + icon_size),
+              egui::Rect::from_min_max(pos2(0.0, 0.0), pos2(1.0, 1.0)),
+              egui::Color32::WHITE,
+            );
+            
+            let text_position = icon_position_scaled + icon_size / 2f32 + vec2(0f32, icon_size.y);
+            
+            painter.text(
+              text_position,
+              egui::Align2::CENTER_CENTER,
+              anchor.id.clone(),
+              egui::FontId::default(),
+              egui::Color32::BLACK
+            );
+          }
+        }
       }
     }
     

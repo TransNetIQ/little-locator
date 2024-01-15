@@ -1,6 +1,6 @@
 //! Утилиты для приложения.
 
-use ll_data::{Location, Pos3};
+use ll_data::{Location, AnchorPos};
 use salvo::{Depot, Request, Response, http::{ParseError, StatusCode}, Writer};
 use salvo::async_trait;
 use serde::{Deserialize, Serialize};
@@ -13,7 +13,7 @@ pub struct AppConfig {
   pub image_filepath: String,
   pub length: f32,
   pub width: f32,
-  pub anchors: Vec<Pos3>,
+  pub anchors: Vec<AnchorPos>,
 }
 
 /// Ошибка сервера.
