@@ -1,7 +1,7 @@
 use crate::utils::LimitDateTime;
 
 use egui::Pos2;
-use ll_data::{Location, MapSizes};
+use ll_data::{Location, MapSizes, Pos3};
 use std::collections::{HashMap, VecDeque};
 use std::sync::{Arc, Mutex, atomic::AtomicBool};
 
@@ -14,7 +14,8 @@ pub struct LittleLocatorApp {
   pub w_input: String,
   pub done: Arc<AtomicBool>,
   // Данные картинок
-  pub position_image_bytes: Arc<Mutex<Option<Vec<u8>>>>,
+  pub tag_image_bytes: Arc<Mutex<Option<Vec<u8>>>>,
+  pub anchor_image_bytes: Arc<Mutex<Option<Vec<u8>>>>,
   // Данные о местоположениях и карте
   pub location_image: Arc<Mutex<Option<Vec<u8>>>>,
   pub location_size: Arc<Mutex<Option<MapSizes>>>,
@@ -22,6 +23,7 @@ pub struct LittleLocatorApp {
   pub data_receiver: ewebsock::WsReceiver,
   pub tracked_tags_locations: HashMap<String, (VecDeque<Location>, bool, bool, usize)>,
   pub tracked_tags_paths: HashMap<String, VecDeque<Pos2>>,
+  pub anchors: Arc<Mutex<Option<Vec<Pos3>>>>,
   // Ограничения по отрисовке трека
   pub limit_tag_path: bool,
   pub limit_online: bool,

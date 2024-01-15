@@ -18,6 +18,14 @@ pub struct Location {
   pub ts: i64,
 }
 
+/// Позиция в трёхмерном пространстве.
+#[derive(Deserialize, Serialize, Clone)]
+pub struct Pos3 {
+  pub x: f32,
+  pub y: f32,
+  pub z: f32,
+}
+
 pub fn curr_ts() -> i64 {
   chrono::Local::now().naive_local().timestamp_millis()
 }

@@ -22,10 +22,16 @@ pub async fn post_new_location(req: &mut Request) -> MResult<&'static str> {
   Ok("Gotcha!")
 }
 
-/// Отправляет на фронтенд иконку позиционирования.
+/// Отправляет на фронтенд иконку тега.
 #[handler]
-pub async fn get_position_img(req: &mut Request, res: &mut Response) {
-  salvo::fs::NamedFile::builder("../frontend/assets/position.png").send(req.headers(), res).await;
+pub async fn get_tag_img(req: &mut Request, res: &mut Response) {
+  salvo::fs::NamedFile::builder("../frontend/assets/tag.png").send(req.headers(), res).await;
+}
+
+/// Отправляет на фронтенд иконку якоря.
+#[handler]
+pub async fn get_anchor_img(req: &mut Request, res: &mut Response) {
+  salvo::fs::NamedFile::builder("../frontend/assets/anchor.png").send(req.headers(), res).await;
 }
 
 /// Вебсокет для обновления местоположения на фронтенде.
@@ -61,6 +67,14 @@ pub async fn ws_location_sender(req: &mut Request, res: &mut Response) -> MResul
 pub async fn get_config(res: &mut Response) -> MResult<()> {
   let app_config = serde_json::from_str::<AppConfig>(&fs::read_to_string("config.json").await?)?;
   res.render(salvo::writing::Json(MapSizes { l: app_config.length, w: app_config.width }));
+  Ok(())
+}
+
+/// Отправляет на фронтенд данные о якорях.
+#[handler]
+pub async fn get_anchors(res: &mut Response) -> MResult<()> {
+  let app_config = serde_json::from_str::<AppConfig>(&fs::read_to_string("config.json").await?)?;
+  res.render(salvo::writing::Json(app_config.anchors));
   Ok(())
 }
 

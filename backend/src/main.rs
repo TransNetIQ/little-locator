@@ -4,15 +4,21 @@ mod server;
 mod threaded_location_sender;
 mod utils;
 
-use crate::server::{get_position_img, post_new_location, ws_location_sender, get_config, get_location_img};
+use crate::server::{
+  get_tag_img,
+  get_anchor_img,
+  post_new_location,
+  ws_location_sender,
+  get_config,
+  get_anchors,
+  get_location_img,
+};
 use crate::threaded_location_sender::start_threaded_location_sender;
 use crate::utils::{DATA_TX_QUEUE, DATA_RX_QUEUE};
 
 use ll_data::MAX_QUEUE_LEN;
 use log::debug;
 use salvo::{Listener, Router, Server, conn::TcpListener};
-use salvo::cors::Cors;
-use salvo::http::Method;
 use simple_logger::SimpleLogger;
 use std::sync::Arc;
 use tokio::sync::{mpsc, Mutex};
@@ -31,40 +37,16 @@ async fn main() {
   debug!("Created DATA_QUEUE");
 
   start_threaded_location_sender().await.unwrap();
-  
-  let cors_handler = Cors::new()
-    .allow_origin("*")
-    .allow_methods(vec![Method::GET, Method::POST])
-    .into_handler();
 
-  let router = Router::with_hoop(cors_handler)
+  let router = Router::new()
     .post(post_new_location)
-    .options(salvo::handler::empty())
-    .push(
-      Router::with_path("config")
-        .get(get_config)
-        .options(salvo::handler::empty())
-    )
-    .push(
-      Router::with_path("location_img")
-        .get(get_location_img)
-        .options(salvo::handler::empty())
-    )
-    .push(
-      Router::with_path("position_img")
-        .get(get_position_img)
-        .options(salvo::handler::empty())
-    )
-    .push(
-      Router::with_path("ws_updater")
-        .goal(ws_location_sender)
-        .options(salvo::handler::empty())
-    )
-    .push(
-      Router::with_path("<**path>")
-        .get(salvo::serve_static::StaticDir::new(["../frontend/dist"]).defaults("index.html"))
-        .options(salvo::handler::empty())
-    );
+    .push(Router::with_path("config").get(get_config))
+    .push(Router::with_path("anchors").get(get_anchors))
+    .push(Router::with_path("location_img").get(get_location_img))
+    .push(Router::with_path("tag_img").get(get_tag_img))
+    .push(Router::with_path("anchor_img").get(get_anchor_img))
+    .push(Router::with_path("ws_updater").goal(ws_location_sender))
+    .push(Router::with_path("<**path>").get(salvo::serve_static::StaticDir::new(["../frontend/dist"]).defaults("index.html")));
   let acceptor = TcpListener::new("0.0.0.0:5800").bind().await;
   Server::new(acceptor).serve(router).await;
 }

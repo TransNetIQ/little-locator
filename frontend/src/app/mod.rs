@@ -140,7 +140,7 @@ impl LittleLocatorApp {
     }
   }
   
-  /// Отображает карту здания и текущее местоположение объектов.
+  /// Отображает карту здания и текущие местоположения объектов.
   pub fn paint_location(&mut self, ui: &mut egui::Ui) -> egui::Response {
     let (response, painter) = ui.allocate_painter(ui.available_size_before_wrap(), egui::Sense::drag());
 
@@ -155,12 +155,23 @@ impl LittleLocatorApp {
       .fit_to_original_size(1f32)
       .paint_at(ui, painter.clip_rect());
 
-    // Рисуем местоположения объектов
+    // Подготавливаем отрисовку местоположений объектов: загружаем текстуры
     let tag_txr = ui.ctx().load_texture(
       "tag",
       egui::ImageData::Color(
         Arc::new(load_image_from_memory(
-          self.position_image_bytes
+          self.tag_image_bytes
+            .lock().unwrap()
+            .as_ref().unwrap()
+          ).unwrap())),
+      Default::default(),
+    );
+    
+    let anchor_txr = ui.ctx().load_texture(
+      "anchor",
+      egui::ImageData::Color(
+        Arc::new(load_image_from_memory(
+          self.anchor_image_bytes
             .lock().unwrap()
             .as_ref().unwrap()
           ).unwrap())),
@@ -176,6 +187,25 @@ impl LittleLocatorApp {
 
     let scale = vec2(painter.clip_rect().width() / location_size.l, painter.clip_rect().height() / location_size.w);
 
+    // 
+    {
+      let anchors_guard = self.anchors.lock().unwrap();
+      let anchors = anchors_guard.as_ref().unwrap();
+      for anchor in anchors {
+        let icon_position_scaled = pos2(
+          painter.clip_rect().left() + anchor.x * scale.x - icon_size.x / 2f32,
+          painter.clip_rect().top() + anchor.y * scale.y - icon_size.y / 2f32
+        );
+        
+        painter.image(
+          anchor_txr.id(),
+          egui::Rect::from_min_max(icon_position_scaled, icon_position_scaled + icon_size),
+          egui::Rect::from_min_max(pos2(0.0, 0.0), pos2(1.0, 1.0)),
+          egui::Color32::WHITE,
+        );
+      }
+    }
+    
     // Обновляем значения лимитов времени
     if self.previous_limit != self.current_limit {
       self.previous_limit = self.current_limit;
