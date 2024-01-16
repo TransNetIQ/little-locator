@@ -17,7 +17,7 @@ fn main() -> eframe::Result<()> {
   eframe::run_native(
     "eframe template",
     native_options,
-    Box::new(|cc| Box::new(LittleLocatorApp::new(cc))),
+    Box::new(|cc| Box::new(LittleLocatorApp::new(cc).unwrap())),
   )
 }
 
@@ -37,7 +37,7 @@ fn main() {
       .start(
         "main_canvas",
         web_options,
-        Box::new(|cc| Box::new(LittleLocatorApp::new(cc))),
+        Box::new(|cc| Box::new(LittleLocatorApp::new(cc).unwrap())),
       )
       .await
       .expect("failed to start eframe");
