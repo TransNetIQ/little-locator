@@ -212,6 +212,45 @@ impl LittleLocatorApp {
           egui::FontId::default(),
           egui::Color32::BLACK
         );
+        
+        // А если ещё и стоит отметка "Показывать расстояние от меток до анкеров"
+        if self.show_distance_between_tags_and_anchors {
+          let anchors_pos_list = self.anchors.ref_cx(|anchors| {
+            let mut anchors_pos_list = vec![];
+            for anchor in anchors { anchors_pos_list.push(pos2(anchor.x, anchor.y)) }
+            anchors_pos_list
+          })?;
+          
+          let tag_center_pos = pos2(
+            icon_position_scaled.x + icon_size.x / 2f32,
+            icon_position_scaled.y + icon_size.y / 2f32
+          );
+          
+          for anchor_pos in anchors_pos_list {
+            let anchor_center_pos = pos2(
+              painter.clip_rect().left() + anchor_pos.x * scale.x,
+              painter.clip_rect().top() + anchor_pos.y * scale.y
+            );
+            
+            shapes.extend(egui::Shape::dashed_line(
+              &vec![tag_center_pos, anchor_center_pos],
+              egui::Stroke::new(1.0, egui::Color32::from_rgb(25, 200, 100)),
+              6.0,
+              2.0
+            ));
+            
+            let text_position = (tag_center_pos + anchor_center_pos.to_vec2()) / 2f32;
+            let dist = pos2(last_tag_position.x, last_tag_position.y).distance(anchor_pos);
+            
+            painter.text(
+              text_position,
+              egui::Align2::CENTER_CENTER,
+              format!("Расстояние: {}", dist),
+              egui::FontId::default(),
+              egui::Color32::BLACK
+            );
+          }
+        }
       }
 
       if tag.2 { // Если сказано отображать путь метки
