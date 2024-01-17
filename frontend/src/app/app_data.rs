@@ -22,7 +22,7 @@ pub struct LittleLocatorApp {
   pub location_size: OptionalRef<MapSizes>,
   pub _data_sender: ewebsock::WsSender,
   pub data_receiver: ewebsock::WsReceiver,
-  pub tracked_tags_locations: HashMap<String, (VecDeque<Location>, bool, bool, usize)>,
+  pub tracked_tags_locations: HashMap<String, (VecDeque<Location>, bool, bool, usize, bool)>,
   pub tracked_tags_paths: HashMap<String, VecDeque<Pos2>>,
   pub anchors: OptionalRef<Vec<AnchorPos>>,
   // Ограничения по отрисовке трека
@@ -30,8 +30,6 @@ pub struct LittleLocatorApp {
   pub limit_online: bool,
   pub current_limit: LimitDateTime,
   pub previous_limit: LimitDateTime,
-  // Другие опции
-  pub show_distance_between_tags_and_anchors: bool,
   // Показать список меток или карту
   pub show_only_tags_list: bool,
 }

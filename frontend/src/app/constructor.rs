@@ -113,7 +113,6 @@ impl LittleLocatorApp {
       limit_online: false,
       current_limit: (Local::now().date_naive(), 0, 0),
       previous_limit: (Local::now().date_naive(), 0, 0),
-      show_distance_between_tags_and_anchors: false,
       show_only_tags_list: false,
     })
   }

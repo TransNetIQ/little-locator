@@ -86,7 +86,7 @@ impl LittleLocatorApp {
           let mut new_vecdeque = VecDeque::new();
           let new_location_id = new_location.id.clone();
           new_vecdeque.push_back(new_location);
-          self.tracked_tags_locations.insert(new_location_id, (new_vecdeque, true, false, 1usize));
+          self.tracked_tags_locations.insert(new_location_id, (new_vecdeque, true, false, 1usize, false));
         } else {
           let locations = self.tracked_tags_locations.get_mut(&new_location.id).unwrap();
           if locations.0.len() > MAX_QUEUE_LEN { locations.0.pop_front(); }
@@ -97,10 +97,7 @@ impl LittleLocatorApp {
     }
 
     // Покажем основной интерфейс приложения
-    ui.horizontal(|ui| {
-      ui.checkbox(&mut self.show_only_tags_list, "Показать метки");
-      ui.checkbox(&mut self.show_distance_between_tags_and_anchors, "Показывать расстояние от меток до анкеров");
-    });
+    ui.checkbox(&mut self.show_only_tags_list, "Показать метки");
     if self.show_only_tags_list {
       let mut keys = { self.tracked_tags_locations.keys().cloned().collect::<Vec<String>>() };
       keys.sort();
@@ -111,6 +108,7 @@ impl LittleLocatorApp {
           ui.label(format!("{}", tag.0.back().unwrap()));
           ui.checkbox(&mut tag.1, "Отобразить метку");
           ui.checkbox(&mut tag.2, "Показать путь");
+          ui.checkbox(&mut tag.4, "Показывать расстояние от метки до анкеров");
         });
       }
     } else {
@@ -213,8 +211,8 @@ impl LittleLocatorApp {
           egui::Color32::BLACK
         );
         
-        // А если ещё и стоит отметка "Показывать расстояние от меток до анкеров"
-        if self.show_distance_between_tags_and_anchors {
+        // А если ещё и стоит отметка "Показывать расстояние от метки до анкеров"
+        if tag.4 {
           let anchors_pos_list = self.anchors.ref_cx(|anchors| {
             let mut anchors_pos_list = vec![];
             for anchor in anchors { anchors_pos_list.push(pos2(anchor.x, anchor.y)) }
