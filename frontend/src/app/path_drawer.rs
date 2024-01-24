@@ -1,4 +1,4 @@
-use crate::app::LittleLocatorApp;
+use crate::app::app_data::LittleLocatorApp;
 
 use egui::pos2;
 use ll_data::MAX_QUEUE_LEN;

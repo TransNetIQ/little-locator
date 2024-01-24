@@ -1,3 +1,4 @@
+use egui::{TextureHandle, Ui};
 use std::sync::{Arc, Mutex};
 
 use crate::utils::MResult;
@@ -72,5 +73,13 @@ pub fn load_image_from_memory(image_data: &[u8]) -> MResult<egui::ColorImage> {
   Ok(egui::ColorImage::from_rgba_unmultiplied(
     size,
     pixels.as_slice(),
+  ))
+}
+
+pub fn load_texture(ui: &mut Ui, name: &str, image_ref: &ImageBytesOptionalRef) -> MResult<TextureHandle> {
+  Ok(ui.ctx().load_texture(
+    name,
+    egui::ImageData::Color(Arc::new(image_ref.ref_cx(|val| load_image_from_memory(val))??)),
+    Default::default(),
   ))
 }
