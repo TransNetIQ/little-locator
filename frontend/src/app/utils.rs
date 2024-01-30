@@ -1,4 +1,5 @@
-use egui::{TextureHandle, Ui};
+use egui::{TextureHandle, Ui, Pos2, Vec2, pos2, vec2};
+use ll_data::MapSizes;
 use std::sync::{Arc, Mutex};
 
 use crate::utils::MResult;
@@ -82,4 +83,40 @@ pub fn load_texture(ui: &mut Ui, name: &str, image_ref: &ImageBytesOptionalRef) 
     egui::ImageData::Color(Arc::new(image_ref.ref_cx(|val| load_image_from_memory(val))??)),
     Default::default(),
   ))
+}
+
+/// Вычисляет масштаб картинки на экране.
+pub fn scale(
+  map_rect: egui::Rect,
+  map_sizes: MapSizes,
+) -> Vec2 {
+  vec2(
+    map_rect.width() / map_sizes.l,
+    map_rect.height() / map_sizes.w,
+  )
+}
+
+/// Вычисляет координаты для отображения их на карте.
+pub fn to_map(
+  map_rect: egui::Rect,
+  scale: Vec2,
+  position: Pos2,
+  centering_val: Vec2,
+) -> Pos2 {
+  pos2(
+    map_rect.left() + position.x * scale.x - centering_val.x / 2f32, // c = mr + p*s   =>   p = (c - mr) / s
+    map_rect.top() + position.y * scale.y - centering_val.y / 2f32,
+  )
+}
+
+/// Вычисляет координаты относительно истинных размеров местоположения.
+pub fn from_map(
+  map_rect: egui::Rect,
+  scale: Vec2,
+  coordinates: Pos2,
+) -> Pos2 {
+  pos2(
+    (coordinates.x - map_rect.left()) / scale.x,
+    (coordinates.y - map_rect.top()) / scale.y,
+  )
 }

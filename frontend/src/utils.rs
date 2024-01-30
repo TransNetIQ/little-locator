@@ -1,4 +1,5 @@
 use chrono::{NaiveDate, NaiveDateTime};
+use egui::{pos2, Pos2};
 use wasm_bindgen::JsValue;
 use std::sync::PoisonError;
 
@@ -49,3 +50,19 @@ impl From<JsValue> for AppError {
 }
 
 pub type MResult<T> = Result<T, AppError>;
+
+pub trait Ignore {
+  fn ignore(&self) -> ();
+}
+
+impl<T> Ignore for MResult<T> {
+  fn ignore(&self) -> () {}
+}
+
+pub trait PositionExtractable {
+  fn extract(&self) -> Pos2;
+}
+
+impl PositionExtractable for ll_data::Location {
+  fn extract(&self) -> Pos2 { pos2(self.x, self.y) }
+}

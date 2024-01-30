@@ -6,12 +6,12 @@ pub mod path_traversal;
 use std::sync::atomic::Ordering as AtomicOrdering;
 
 use crate::app::app_data::LittleLocatorApp;
-use crate::utils::{HOURS, MINUTES, MResult};
+use crate::utils::{Ignore, MResult};
 
 pub const MENU: [&'static str; 3] = [
   "Карта",
   "Метки",
-  "Тестовый граф путей"
+  "Граф путей"
 ];
 
 impl eframe::App for LittleLocatorApp {
@@ -38,9 +38,9 @@ impl LittleLocatorApp {
     });
     // Показываем весь остальной интерфейс
     match self.menu {
-      0usize => { self.show_map(ui); },
+      0usize => { self.show_map(ui).ignore(); },
       1usize => { self.show_tags_list(ui); },
-      2usize => { self.show_path_traversal(ui); },
+      2usize => { self.show_path_traversal(ui).ignore(); },
       _ => return Err("Такого пункта меню не существует.".into())
     }
     Ok(())

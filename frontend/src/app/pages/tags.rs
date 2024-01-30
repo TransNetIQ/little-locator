@@ -9,10 +9,11 @@ impl LittleLocatorApp {
       ui.horizontal(|ui| {
         let tag = self.tracked_tags_locations.get_mut(&key).unwrap();
 
-        ui.label(format!("{}", tag.0.back().unwrap()));
-        ui.checkbox(&mut tag.1, "Отобразить метку");
-        ui.checkbox(&mut tag.2, "Показать путь");
-        ui.checkbox(&mut tag.4, "Показывать расстояние до анкеров");
+        ui.label(format!("{}", tag.locations.back().unwrap()));
+        ui.checkbox(&mut tag.visible, "Отобразить метку");
+        ui.checkbox(&mut tag.show_path, "Показать путь");
+        ui.checkbox(&mut tag.show_anchor_calculated_distance, "Показывать расстояние до анкеров");
+        ui.checkbox(&mut tag.show_nearest_graph_distance, "Искать ближайшую точку на графе перемещений");
       });
     }
   }

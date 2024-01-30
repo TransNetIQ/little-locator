@@ -2,7 +2,7 @@ use ewebsock::{WsEvent, WsMessage};
 use ll_data::{Location, MAX_QUEUE_LEN};
 use std::collections::VecDeque;
 
-use crate::app::app_data::LittleLocatorApp;
+use crate::app::app_data::{LittleLocatorApp, TagSettings};
 
 impl LittleLocatorApp {
   /// Обрабатывает входящие местоположения
@@ -21,12 +21,23 @@ impl LittleLocatorApp {
           let mut new_vecdeque = VecDeque::new();
           let new_location_id = new_location.id.clone();
           new_vecdeque.push_back(new_location);
-          self.tracked_tags_locations.insert(new_location_id, (new_vecdeque, true, false, 1usize, false));
+          self.tracked_tags_locations.insert(
+            new_location_id,
+            TagSettings {
+              locations: new_vecdeque,
+              redrawal_index: 1usize,
+              visible: true,
+              show_path: false,
+              show_anchor_calculated_distance: false,
+              show_anchor_real_distance: false,
+              show_nearest_graph_distance: false,
+            }
+          );
         } else {
-          let locations = self.tracked_tags_locations.get_mut(&new_location.id).unwrap();
-          if locations.0.len() > MAX_QUEUE_LEN { locations.0.pop_front(); }
-          locations.0.push_back(new_location);
-          locations.3 += 1usize;
+          let tag = self.tracked_tags_locations.get_mut(&new_location.id).unwrap();
+          if tag.locations.len() > MAX_QUEUE_LEN { tag.locations.pop_front(); }
+          tag.locations.push_back(new_location);
+          tag.redrawal_index += 1usize;
         };
       }
     }

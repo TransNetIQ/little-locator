@@ -45,6 +45,9 @@ impl LittleLocatorApp {
       current_limit: (Local::now().date_naive(), 0, 0),
       previous_limit: (Local::now().date_naive(), 0, 0),
       menu: 0,
+      path_traversal_graph: Vec::new(),
+      path_to_add: (false, None, false),
+      last_pos: None,
     })
   }
 }
