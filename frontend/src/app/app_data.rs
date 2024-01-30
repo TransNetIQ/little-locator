@@ -14,7 +14,6 @@ pub struct TagSettings {
   pub show_path: bool,
   pub show_anchor_calculated_distance: bool,
   pub show_anchor_real_distance: bool,
-  pub show_nearest_graph_distance: bool,
 }
 
 /// Структура приложения.

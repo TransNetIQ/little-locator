@@ -39,12 +39,12 @@ impl LittleLocatorApp {
     // 3. Рассчитываем масштаб изображения на экране
     let location_size = self.location_size.get_cloned()?;
     let icon_size = vec2(20.0, 20.0);
-    let path_icon_size = vec2(10.0, 10.0);
     let scale = scale(painter.clip_rect(), location_size);
 
-    // 4. Отрисовываем анкера и примерные пути
+    // 4. Отрисовываем анкера
     self.draw_anchors(&painter, scale, icon_size, &anchor_txr).ignore();
-    self.draw_path_traversals(&painter, scale, path_icon_size, &tag_txr);
+    #[cfg(debug_assertions)]
+    self.draw_path_traversals(&painter, scale, vec2(10.0, 10.0), &tag_txr);
     
     // 5. Обновляем значения лимитов времени
     if self.previous_limit != self.current_limit {
@@ -63,7 +63,18 @@ impl LittleLocatorApp {
       if tag.visible { // 6.1. Если сказано отображать метку
         let last_tag_position = tag.locations.back().unwrap();
         let icon_position_scaled = to_map(painter.clip_rect(), scale, last_tag_position.extract(), icon_size);
-        LittleLocatorApp::draw_tag_point(&painter, &tag_txr, icon_position_scaled, icon_size, last_tag_position.id.clone());
+        
+        // 6.1.1. Если граф возможных перемещений не пуст, то мы должны показать ближайшую точку на графе.
+        if !self.path_traversal_graph.is_empty() {
+          self.draw_nearest_graph_point(&painter, &tag_txr, scale, icon_size, &last_tag_position);
+          #[cfg(debug_assertions)]
+          LittleLocatorApp::draw_tag_point(&painter, &tag_txr, icon_position_scaled, icon_size, last_tag_position.id.clone());
+        }
+        
+        // 6.1.2. Иначе рисуем просто точку.
+        else {
+          LittleLocatorApp::draw_tag_point(&painter, &tag_txr, icon_position_scaled, icon_size, last_tag_position.id.clone());
+        }
         
         // 6.2. А если ещё и стоит отметка "Показывать расстояние от метки до анкеров"
         if tag.show_anchor_calculated_distance {
@@ -88,6 +99,7 @@ impl LittleLocatorApp {
       }
     }
     
+    // После отрисовки кадра однозначно известно, что временные ограничения, установленные на путь меток, просчитаны.
     self.limit_online = true;
     
     painter.extend(shapes);

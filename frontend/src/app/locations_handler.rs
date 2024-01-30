@@ -30,7 +30,6 @@ impl LittleLocatorApp {
               show_path: false,
               show_anchor_calculated_distance: false,
               show_anchor_real_distance: false,
-              show_nearest_graph_distance: false,
             }
           );
         } else {

@@ -13,7 +13,6 @@ impl LittleLocatorApp {
         ui.checkbox(&mut tag.visible, "Отобразить метку");
         ui.checkbox(&mut tag.show_path, "Показать путь");
         ui.checkbox(&mut tag.show_anchor_calculated_distance, "Показывать расстояние до анкеров");
-        ui.checkbox(&mut tag.show_nearest_graph_distance, "Искать ближайшую точку на графе перемещений");
       });
     }
   }
