@@ -2,7 +2,7 @@
 
 use crate::utils::{MResult, DATA_TX_QUEUE, WS_TX_QUEUE, AppConfig};
 
-use ll_data::{Location, LocationType, MapSizes, MAX_QUEUE_LEN};
+use ll_data::{Location, LocationType, MapSizes, MaxStickingRadius, MAX_QUEUE_LEN};
 use log::debug;
 use salvo::{Request, Response};
 use salvo::handler;
@@ -45,6 +45,14 @@ pub async fn get_tag_img(req: &mut Request, res: &mut Response) {
 #[handler]
 pub async fn get_anchor_img(req: &mut Request, res: &mut Response) {
   salvo::fs::NamedFile::builder("../frontend/assets/anchor.png").send(req.headers(), res).await;
+}
+
+/// Отправляет на фронтенд максимальный радиус прилипания.
+#[handler]
+pub async fn get_max_sticking_radius(res: &mut Response) -> MResult<()> {
+  let app_config = serde_json::from_str::<AppConfig>(&fs::read_to_string("config.json").await?)?;
+  res.render(salvo::writing::Json(MaxStickingRadius { max_sticking_radius: app_config.max_sticking_radius.unwrap_or(-1f32) }));
+  Ok(())
 }
 
 /// Вебсокет для обновления местоположения на фронтенде.

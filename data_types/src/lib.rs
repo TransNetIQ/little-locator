@@ -35,6 +35,12 @@ pub struct AnchorPos {
   pub z: f32,
 }
 
+/// Максимальный радиус прилипания (для передачи по HTTP).
+#[derive(Deserialize, Serialize, Clone)]
+pub struct MaxStickingRadius {
+  pub max_sticking_radius: f32,
+}
+
 pub fn curr_ts() -> i64 { chrono::Local::now().naive_local().timestamp_millis() }
 pub fn default_loc_type() -> LocationType { LocationType::Tag }
 

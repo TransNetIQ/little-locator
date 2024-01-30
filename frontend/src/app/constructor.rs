@@ -21,7 +21,15 @@ impl LittleLocatorApp {
     let loc_size = OptionalRef::new();
     let anchors = OptionalRef::new();
     let loc_img = OptionalRef::new();
-    let _ = request_config(loc_size.clone(), loc_img.clone(), anchors.clone(), done.clone());
+    let max_sticking_radius = OptionalRef::new();
+    
+    let _ = request_config(
+      loc_size.clone(),
+      loc_img.clone(),
+      anchors.clone(),
+      max_sticking_radius.clone(),
+      done.clone(),
+    );
     
     let server_origin = get_server_origin()?;
     let (data_tx, data_rx) = ewebsock::connect(format!("ws://{}:5800/ws_updater", server_origin))?;
@@ -48,6 +56,7 @@ impl LittleLocatorApp {
       path_traversal_graph: Vec::new(),
       path_to_add: (false, None, false),
       last_pos: None,
+      max_sticking_radius,
     })
   }
 }

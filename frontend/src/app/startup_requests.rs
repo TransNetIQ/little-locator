@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering as AtomicOrdering};
 
-use ll_data::{AnchorPos, MapSizes};
+use ll_data::{AnchorPos, MapSizes, MaxStickingRadius};
 
 use crate::app::utils::{ImageBytesOptionalRef, OptionalRef};
 use crate::utils::MResult;
@@ -42,6 +42,7 @@ pub fn request_config(
   location_size: OptionalRef<MapSizes>,
   location_image: ImageBytesOptionalRef,
   anchors: OptionalRef<HashMap<String, AnchorPos>>,
+  max_sticking_radius: OptionalRef<f32>,
   done: Arc<AtomicBool>,
 ) -> MResult<()> {
   let server_origin = get_server_origin()?;
@@ -49,6 +50,7 @@ pub fn request_config(
   let loc_size_request = ehttp::Request::get(format!("http://{}:5800/config", server_origin));
   let loc_img_request = ehttp::Request::get(format!("http://{}:5800/location_img", server_origin));
   let loc_anchors_request = ehttp::Request::get(format!("http://{}:5800/anchors", server_origin));
+  let max_sticking_radius_request = ehttp::Request::get(format!("http://{}:5800/msr", server_origin));
   
   // Запрос на получение размеров картинки 
   // 
@@ -87,6 +89,20 @@ pub fn request_config(
               for anchor in anchors_vec { hm.insert(anchor.id.clone(), anchor); }
               let _ = anchors.set(hm);
             },
+          }
+        });
+        // Запрос на получение максимального радиуса прилипания
+        ehttp::fetch(max_sticking_radius_request, move |result| {
+          match result {
+            Err(_) => return,
+            Ok(resp) => {
+              let bytes = resp.bytes.clone();
+              let msr = match serde_json::from_slice::<MaxStickingRadius>(&bytes) {
+                Err(_) => return,
+                Ok(v) => v,
+              };
+              if msr.max_sticking_radius >= 0f32 { let _ = max_sticking_radius.set(msr.max_sticking_radius); }
+            }
           }
         });
       }

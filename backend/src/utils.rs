@@ -13,6 +13,7 @@ pub struct AppConfig {
   pub image_filepath: String,
   pub length: f32,
   pub width: f32,
+  pub max_sticking_radius: Option<f32>,
   pub anchors: Vec<AnchorPos>,
 }
 

@@ -42,8 +42,9 @@ pub struct LittleLocatorApp {
   pub previous_limit: LimitDateTime,
   // Выбор страницы для показа
   pub menu: usize,
-  // Тестовый граф путей
+  // Граф возможных путей
   pub path_traversal_graph: Vec<Vec<Pos2>>,
   pub path_to_add: (bool, Option<Vec<Pos2>>, bool),
   pub last_pos: Option<Pos2>,
+  pub max_sticking_radius: OptionalRef<f32>,
 }

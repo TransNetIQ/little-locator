@@ -170,9 +170,18 @@ impl LittleLocatorApp {
       }
     }
     
-    let pos = nearest_pt;
+    match self.max_sticking_radius.ref_cx(|max_sticking_radius| {
+      // Если радиус слишком большой, то привязка местоположения к графу не осуществляется.
+      if tag.extract().distance(nearest_pt) > *max_sticking_radius {
+        return Some(tag.extract());
+      }
+      None
+    }) {
+      Ok(Some(pos)) => { nearest_pt = pos; },
+      _ => {},
+    }
     
-    let icon_position_scaled = to_map(painter.clip_rect(), scale, pos, icon_size);
+    let icon_position_scaled = to_map(painter.clip_rect(), scale, nearest_pt, icon_size);
     let text_position = icon_position_scaled + icon_size / 2f32 + vec2(0f32, icon_size.y);
     
     painter.image(
