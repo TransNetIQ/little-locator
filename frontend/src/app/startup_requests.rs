@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering as AtomicOrdering};
 
@@ -40,7 +41,7 @@ pub fn get_pics(
 pub fn request_config(
   location_size: OptionalRef<MapSizes>,
   location_image: ImageBytesOptionalRef,
-  anchors: OptionalRef<Vec<AnchorPos>>,
+  anchors: OptionalRef<HashMap<String, AnchorPos>>,
   done: Arc<AtomicBool>,
 ) -> MResult<()> {
   let server_origin = get_server_origin()?;
@@ -82,7 +83,9 @@ pub fn request_config(
                 Err(_) => return,
                 Ok(v) => v,
               };
-              let _ = anchors.set(anchors_vec);
+              let mut hm = HashMap::new();
+              for anchor in anchors_vec { hm.insert(anchor.id.clone(), anchor); }
+              let _ = anchors.set(hm);
             },
           }
         });

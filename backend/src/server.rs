@@ -2,7 +2,7 @@
 
 use crate::utils::{MResult, DATA_TX_QUEUE, WS_TX_QUEUE, AppConfig};
 
-use ll_data::{Location, MapSizes, MAX_QUEUE_LEN};
+use ll_data::{Location, LocationType, MapSizes, MAX_QUEUE_LEN};
 use log::debug;
 use salvo::{Request, Response};
 use salvo::handler;
@@ -10,7 +10,7 @@ use salvo::websocket::{Message, WebSocketUpgrade};
 use tokio::sync::mpsc;
 use tokio::fs;
 
-/// Добавляет новые данные о местоположении.
+/// Добавляет новые данные о местоположении метки.
 #[handler]
 pub async fn post_new_location(req: &mut Request) -> MResult<&'static str> {
   let data = req.parse_json::<Location>().await?;
@@ -20,6 +20,19 @@ pub async fn post_new_location(req: &mut Request) -> MResult<&'static str> {
     .await?;
   debug!("Got new location, inserted into DATA_QUEUE");
   Ok("Gotcha!")
+}
+
+/// Добавляет новые данные о местоположении анкера.
+#[handler]
+pub async fn post_new_anchor(req: &mut Request) -> MResult<&'static str> {
+  let mut data = req.parse_json::<Location>().await?;
+  data.loc_type = LocationType::Anchor;
+  DATA_TX_QUEUE
+    .get().ok_or::<String>("Не удалось подключиться к очереди данных (на запись).".into())?
+    .send(data)
+    .await?;
+  debug!("Got new location, inserted into DATA_QUEUE");
+  Ok("Gotcha un anchor!")
 }
 
 /// Отправляет на фронтенд иконку тега.

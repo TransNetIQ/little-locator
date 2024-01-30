@@ -17,8 +17,8 @@ impl LittleLocatorApp {
     self.anchors.ref_cx(|anchors| { for anchor in anchors {
       // 1. Рассчитываем позицию для показа иконки
       let icon_position_scaled = pos2(
-        painter.clip_rect().left() + anchor.x * scale.x - icon_size.x / 2f32,
-        painter.clip_rect().top() + anchor.y * scale.y - icon_size.y / 2f32
+        painter.clip_rect().left() + anchor.1.x * scale.x - icon_size.x / 2f32,
+        painter.clip_rect().top() + anchor.1.y * scale.y - icon_size.y / 2f32
       );
       
       // 2. Рисуем иконку на карте
@@ -36,7 +36,7 @@ impl LittleLocatorApp {
       painter.text(
         text_position,
         egui::Align2::CENTER_CENTER,
-        anchor.id.clone(),
+        anchor.1.id.clone(),
         egui::FontId::monospace(12.0),
         egui::Color32::BLACK
       );
@@ -205,7 +205,7 @@ impl LittleLocatorApp {
     
     let anchors_pos_list = self.anchors.ref_cx(|anchors| {
       let mut anchors_pos_list = vec![];
-      for anchor in anchors { anchors_pos_list.push(pos2(anchor.x, anchor.y)) }
+      for anchor in anchors { anchors_pos_list.push(pos2(anchor.1.x, anchor.1.y)) }
       anchors_pos_list
     })?;
     

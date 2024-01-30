@@ -7,10 +7,18 @@ pub struct MapSizes {
   pub w: f32,
 }
 
+#[derive(Deserialize, Serialize, PartialEq, Eq, Clone)]
+pub enum LocationType {
+  Tag,
+  Anchor,
+}
+
 /// Данные о местоположении.
 #[derive(Deserialize, Serialize, Clone)]
 pub struct Location {
   pub id: String,
+  #[serde(default = "default_loc_type")]
+  pub loc_type: LocationType,
   pub x: f32,
   pub y: f32,
   pub z: f32,
@@ -27,9 +35,8 @@ pub struct AnchorPos {
   pub z: f32,
 }
 
-pub fn curr_ts() -> i64 {
-  chrono::Local::now().naive_local().timestamp_millis()
-}
+pub fn curr_ts() -> i64 { chrono::Local::now().naive_local().timestamp_millis() }
+pub fn default_loc_type() -> LocationType { LocationType::Tag }
 
 impl std::fmt::Display for Location {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

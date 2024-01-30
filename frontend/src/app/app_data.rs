@@ -34,7 +34,7 @@ pub struct LittleLocatorApp {
   pub data_receiver: ewebsock::WsReceiver,
   pub tracked_tags_locations: HashMap<String, TagSettings>,
   pub tracked_tags_paths: HashMap<String, VecDeque<Pos2>>,
-  pub anchors: OptionalRef<Vec<AnchorPos>>,
+  pub anchors: OptionalRef<HashMap<String, AnchorPos>>,
   // Ограничения по отрисовке трека
   pub limit_tag_path: bool,
   pub limit_online: bool,
