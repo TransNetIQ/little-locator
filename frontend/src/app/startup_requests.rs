@@ -57,7 +57,7 @@ pub fn request_config(
   // P.S. Если есть размеры, - есть всё остальное.
   ehttp::fetch(loc_size_request, move |result| {
     match result {
-      Err(_) => return,
+      Err(_) => (),
       Ok(resp) => {
         let bytes = resp.bytes.clone();
         let map_sizes = match serde_json::from_slice::<MapSizes>(&bytes) {
@@ -68,7 +68,7 @@ pub fn request_config(
         // Запрос на получение картинки
         ehttp::fetch(loc_img_request, move |result| {
           match result {
-            Err(_) => return,
+            Err(_) => (),
             Ok(resp) => if resp.status == 200 {
               let _ = location_image.set(resp.bytes.clone());
               done.store(true, AtomicOrdering::Relaxed);
@@ -78,7 +78,7 @@ pub fn request_config(
         // Запрос на получение списка анкеров
         ehttp::fetch(loc_anchors_request, move |result| {
           match result {
-            Err(_) => return,
+            Err(_) => (),
             Ok(resp) => {
               let bytes = resp.bytes.clone();
               let anchors_vec = match serde_json::from_slice::<Vec<AnchorPos>>(&bytes) {
@@ -94,7 +94,7 @@ pub fn request_config(
         // Запрос на получение максимального радиуса прилипания
         ehttp::fetch(max_sticking_radius_request, move |result| {
           match result {
-            Err(_) => return,
+            Err(_) => (),
             Ok(resp) => {
               let bytes = resp.bytes.clone();
               let msr = match serde_json::from_slice::<MaxStickingRadius>(&bytes) {

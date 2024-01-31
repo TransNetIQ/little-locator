@@ -71,7 +71,7 @@ impl LittleLocatorApp {
         if pointer_pos.distance(last_pt) > 10f32 {
           self.path_to_add.2 = true;
           shapes.extend(egui::Shape::dotted_line(
-            &vec![
+            &[
               last_pt,
               pointer_pos
             ],

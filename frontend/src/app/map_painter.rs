@@ -229,7 +229,7 @@ impl LittleLocatorApp {
       );
       
       shapes.extend(egui::Shape::dashed_line(
-        &vec![tag_center_pos, anchor_center_pos],
+        &[tag_center_pos, anchor_center_pos],
         egui::Stroke::new(1.0, egui::Color32::from_rgb(25, 200, 100)),
         6.0,
         2.0
@@ -292,6 +292,7 @@ impl LittleLocatorApp {
           }
         }
         
+        // Отрисовка линии до анкера
         shapes.extend(egui::Shape::dashed_line(
           &[tag_center_pos, anchor_center_pos],
           egui::Stroke::new(1.0, egui::Color32::from_rgb(25, 200, 100)),
@@ -299,7 +300,17 @@ impl LittleLocatorApp {
           2.0
         ));
         
+        // Если была получена реальная дистанция до анкера с метки...
         if let Some(real_dist) = real_dist {
+          // 1. Отрисовка реального расстояния поверх линии
+          let calculated_dist = pos2(tag.x, tag.y).distance(anchor_pos.1);
+          let real_vec = vec2(anchor_center_pos.x - tag_center_pos.x, anchor_center_pos.y - tag_center_pos.y) * real_dist / calculated_dist;
+          shapes.push(egui::Shape::line(
+            vec![tag_center_pos, tag_center_pos + real_vec],
+            egui::Stroke::new(1.0, egui::Color32::from_rgb(0, 0, 255))
+          ));
+          
+          // 2. Отображение численного расстояния
           painter.text(
             text_position,
             egui::Align2::CENTER_CENTER,

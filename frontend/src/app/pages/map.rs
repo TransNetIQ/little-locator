@@ -66,7 +66,7 @@ impl LittleLocatorApp {
         
         // 6.1.1. Если граф возможных перемещений не пуст, то мы должны показать ближайшую точку на графе.
         if !self.path_traversal_graph.is_empty() {
-          self.draw_nearest_graph_point(&painter, &tag_txr, scale, icon_size, &last_tag_position);
+          self.draw_nearest_graph_point(&painter, &tag_txr, scale, icon_size, last_tag_position);
           #[cfg(debug_assertions)]
           LittleLocatorApp::draw_tag_point(&painter, &tag_txr, icon_position_scaled, icon_size, last_tag_position.id.clone());
         }
@@ -79,9 +79,9 @@ impl LittleLocatorApp {
         // 6.2. А если ещё и стоит отметка "Показывать расстояние от метки до анкеров"
         if tag.show_anchor_calculated_distance {
           if tag.show_anchor_real_distance {
-            self.draw_real_tag_distances(&painter, &last_tag_position, icon_position_scaled, icon_size, scale)?;
+            self.draw_real_tag_distances(&painter, last_tag_position, icon_position_scaled, icon_size, scale)?;
           } else {
-            self.draw_calculated_tag_distances(&painter, &last_tag_position, icon_position_scaled, icon_size, scale)?;
+            self.draw_calculated_tag_distances(&painter, last_tag_position, icon_position_scaled, icon_size, scale)?;
           }
         }
       }

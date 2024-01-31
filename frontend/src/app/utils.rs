@@ -30,7 +30,7 @@ impl<T: Clone> OptionalRef<T> {
   /// ```rust
   /// optional_reference.ref_cx(|val| println!("{:?}", *val));
   /// ```
-  pub fn ref_cx<'a, F, R>(&self, func: F) -> MResult<R>
+  pub fn ref_cx<F, R>(&self, func: F) -> MResult<R>
     where F: Fn(&T) -> R
   {
     let mutex_guard = self.inner_val.lock()?;
@@ -46,7 +46,7 @@ impl<T: Clone> OptionalRef<T> {
   /// optional_reference.mut_cx(|val| *val = map_sizes);
   /// ```
   #[allow(dead_code)]
-  pub fn mut_cx<'a, F, R>(&mut self, func: F) -> MResult<R>
+  pub fn mut_cx<F, R>(&mut self, func: F) -> MResult<R>
     where F: Fn(&mut T) -> R
   {
     let mut mutex_guard = self.inner_val.lock()?;
