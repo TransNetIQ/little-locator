@@ -29,9 +29,10 @@ impl LittleLocatorApp {
                 locations: new_vecdeque,
                 redrawal_index: 1usize,
                 visible: true,
+                visible_type: 0usize,
                 show_path: false,
-                show_anchor_calculated_distance: false,
-                show_anchor_real_distance: true,
+                show_anchor_distance: false,
+                anchor_distance_type: 0usize,
               }
             );
           } else {

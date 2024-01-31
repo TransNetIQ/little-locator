@@ -34,6 +34,7 @@ impl LittleLocatorApp {
 
     // 2. Подготавливаем отрисовку местоположений объектов: загружаем текстуры
     let tag_txr = load_texture(ui, "tag", &self.tag_image_bytes)?;
+    let green_tag_txr = load_texture(ui, "green_tag", &self.green_tag_image_bytes)?;
     let anchor_txr = load_texture(ui, "anchor", &self.anchor_image_bytes)?;
 
     // 3. Рассчитываем масштаб изображения на экране
@@ -41,10 +42,9 @@ impl LittleLocatorApp {
     let icon_size = vec2(20.0, 20.0);
     let scale = scale(painter.clip_rect(), location_size);
 
-    // 4. Отрисовываем анкера
+    // 4. Отрисовываем анкера и граф возможных путей
     self.draw_anchors(&painter, scale, icon_size, &anchor_txr).ignore();
-    #[cfg(debug_assertions)]
-    self.draw_path_traversals(&painter, scale, vec2(10.0, 10.0), &tag_txr);
+    if self.show_path_traversal_graph { self.draw_path_traversals(&painter, scale, vec2(10.0, 10.0), &tag_txr); }
     
     // 5. Обновляем значения лимитов времени
     if self.previous_limit != self.current_limit {
@@ -64,21 +64,31 @@ impl LittleLocatorApp {
         let last_tag_position = tag.locations.back().unwrap();
         let icon_position_scaled = to_map(painter.clip_rect(), scale, last_tag_position.extract(), icon_size);
         
-        // 6.1.1. Если граф возможных перемещений не пуст, то мы должны показать ближайшую точку на графе.
-        if !self.path_traversal_graph.is_empty() {
-          self.draw_nearest_graph_point(&painter, &tag_txr, scale, icon_size, last_tag_position);
-          #[cfg(debug_assertions)]
-          LittleLocatorApp::draw_tag_point(&painter, &tag_txr, icon_position_scaled, icon_size, last_tag_position.id.clone());
-        }
-        
-        // 6.1.2. Иначе рисуем просто точку.
-        else {
-          LittleLocatorApp::draw_tag_point(&painter, &tag_txr, icon_position_scaled, icon_size, last_tag_position.id.clone());
+        match tag.visible_type {
+          0usize => {
+            LittleLocatorApp::draw_tag_point(&painter, &tag_txr, icon_position_scaled, icon_size, last_tag_position.id.clone());
+          },
+          1usize => {
+            if !self.path_traversal_graph.is_empty() {
+              self.draw_nearest_graph_point(&painter, &green_tag_txr, scale, icon_size, last_tag_position);
+            } else {
+              LittleLocatorApp::draw_tag_point(&painter, &tag_txr, icon_position_scaled, icon_size, last_tag_position.id.clone());
+            }
+          },
+          2usize => {
+            if !self.path_traversal_graph.is_empty() {
+              self.draw_nearest_graph_point(&painter, &green_tag_txr, scale, icon_size, last_tag_position);
+              LittleLocatorApp::draw_tag_point(&painter, &tag_txr, icon_position_scaled, icon_size, last_tag_position.id.clone());
+            } else {
+              LittleLocatorApp::draw_tag_point(&painter, &tag_txr, icon_position_scaled, icon_size, last_tag_position.id.clone());
+            }
+          },
+          _ => (),
         }
         
         // 6.2. А если ещё и стоит отметка "Показывать расстояние от метки до анкеров"
-        if tag.show_anchor_calculated_distance {
-          if tag.show_anchor_real_distance {
+        if tag.show_anchor_distance {
+          if tag.anchor_distance_type == 0usize {
             self.draw_real_tag_distances(&painter, last_tag_position, icon_position_scaled, icon_size, scale)?;
           } else {
             self.draw_calculated_tag_distances(&painter, last_tag_position, icon_position_scaled, icon_size, scale)?;

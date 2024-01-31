@@ -24,14 +24,17 @@ pub fn get_server_origin() -> MResult<String> {
 /// Получение пиктограмм меток и анкеров.
 pub fn get_pics(
   tag_img: ImageBytesOptionalRef,
+  green_tag_img: ImageBytesOptionalRef,
   anchor_img: ImageBytesOptionalRef,
 ) -> MResult<()> {
   let server_origin = get_server_origin()?;
   
   let tag_img_request = ehttp::Request::get(format!("http://{}:5800/tag_img", server_origin));
+  let green_tag_img_request = ehttp::Request::get(format!("http://{}:5800/green_tag_img", server_origin));
   let anchor_img_request = ehttp::Request::get(format!("http://{}:5800/anchor_img", server_origin));
   
   ehttp::fetch(tag_img_request, move |result| { let _ = tag_img.set(result.unwrap().bytes.clone()); });
+  ehttp::fetch(green_tag_img_request, move |result| { let _ = green_tag_img.set(result.unwrap().bytes.clone()); });
   ehttp::fetch(anchor_img_request, move |result| { let _ = anchor_img.set(result.unwrap().bytes.clone()); });
   
   Ok(())

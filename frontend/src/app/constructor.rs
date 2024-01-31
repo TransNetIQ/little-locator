@@ -14,8 +14,9 @@ impl LittleLocatorApp {
     egui_extras::install_image_loaders(&cc.egui_ctx);
 
     let tag_img = OptionalRef::new();
+    let green_tag_img = OptionalRef::new();
     let anchor_img = OptionalRef::new();
-    get_pics(tag_img.clone(), anchor_img.clone())?;
+    get_pics(tag_img.clone(), green_tag_img.clone(), anchor_img.clone())?;
     
     let done = Arc::new(AtomicBool::new(false));
     let loc_size = OptionalRef::new();
@@ -41,6 +42,7 @@ impl LittleLocatorApp {
       l_input: "25.0".into(),
       w_input: "25.0".into(),
       tag_image_bytes: tag_img,
+      green_tag_image_bytes: green_tag_img,
       anchor_image_bytes: anchor_img,
       location_image: loc_img,
       location_size: loc_size,
@@ -57,6 +59,7 @@ impl LittleLocatorApp {
       path_to_add: (false, None, false),
       last_pos: None,
       max_sticking_radius,
+      show_path_traversal_graph: false,
     })
   }
 }

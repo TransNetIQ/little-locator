@@ -35,6 +35,7 @@ impl LittleLocatorApp {
     ui.horizontal(|ui| {
       ui.label("Меню:");
       egui::ComboBox::from_label("").show_index(ui, &mut self.menu, 3usize, |i| MENU[i]);
+      if self.menu == 0usize { ui.checkbox(&mut self.show_path_traversal_graph, "Отображать граф"); }
     });
     // Показываем весь остальной интерфейс
     match self.menu {

@@ -6,14 +6,30 @@ use ll_data::{Location, MapSizes, AnchorPos};
 use std::collections::{HashMap, VecDeque};
 use std::sync::{Arc, atomic::AtomicBool};
 
+/// Опции отображения метки.
+#[allow(dead_code)]
+pub enum ShowTagOps {
+  RealCoords,
+  GraphSticked,
+  Both,
+}
+
+/// Опции отображения расстояния меток до анкеров.
+#[allow(dead_code)]
+pub enum ShowAnchorsDistOps {
+  CoordsDists,
+  RealDists,
+}
+
 /// Опции метки.
 pub struct TagSettings {
   pub locations: VecDeque<Location>,
   pub redrawal_index: usize,
   pub visible: bool,
+  pub visible_type: usize, // ShowTagOps
   pub show_path: bool,
-  pub show_anchor_calculated_distance: bool,
-  pub show_anchor_real_distance: bool,
+  pub show_anchor_distance: bool,
+  pub anchor_distance_type: usize, // ShowAnchorsDistOps
 }
 
 /// Структура приложения.
@@ -26,6 +42,7 @@ pub struct LittleLocatorApp {
   pub done: Arc<AtomicBool>,
   // Данные картинок
   pub tag_image_bytes: ImageBytesOptionalRef,
+  pub green_tag_image_bytes: ImageBytesOptionalRef,
   pub anchor_image_bytes: ImageBytesOptionalRef,
   // Данные о местоположениях и карте
   pub location_image: ImageBytesOptionalRef,
@@ -47,4 +64,6 @@ pub struct LittleLocatorApp {
   pub path_to_add: (bool, Option<Vec<Pos2>>, bool),
   pub last_pos: Option<Pos2>,
   pub max_sticking_radius: OptionalRef<f32>,
+  // Дополнительные опции
+  pub show_path_traversal_graph: bool,
 }

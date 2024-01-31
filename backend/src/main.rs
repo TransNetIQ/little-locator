@@ -6,6 +6,7 @@ mod utils;
 
 use crate::server::{
   get_tag_img,
+  get_green_tag_img,
   get_anchor_img,
   post_new_location,
   post_new_anchor,
@@ -46,6 +47,7 @@ async fn main() {
     .push(Router::with_path("anchors").get(get_anchors).post(post_new_anchor))
     .push(Router::with_path("location_img").get(get_location_img))
     .push(Router::with_path("tag_img").get(get_tag_img))
+    .push(Router::with_path("green_tag_img").get(get_green_tag_img))
     .push(Router::with_path("anchor_img").get(get_anchor_img))
     .push(Router::with_path("msr").get(get_max_sticking_radius))
     .push(Router::with_path("ws_updater").goal(ws_location_sender))

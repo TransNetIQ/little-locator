@@ -1,6 +1,6 @@
 [package]
 name = "little-locator-frontend"
-version = "1.0.7"
+version = "1.0.8"
 edition = "2021"
 authors = ["Klimenty Titov <aclo.create@gmail.com>"]
 license = "MIT"
