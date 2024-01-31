@@ -24,6 +24,14 @@ pub struct Location {
   pub z: f32,
   #[serde(default = "curr_ts")]
   pub ts: i64,
+  pub dist: Option<Vec<DistToAnchor>>,
+}
+
+/// Дистанция до анкера.
+#[derive(Deserialize, Serialize, Clone)]
+pub struct DistToAnchor {
+  pub aid: String,
+  pub dist: f32,
 }
 
 /// Позиция в трёхмерном пространстве.

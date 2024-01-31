@@ -170,16 +170,15 @@ impl LittleLocatorApp {
       }
     }
     
-    match self.max_sticking_radius.ref_cx(|max_sticking_radius| {
+    let check_msr = |max_sticking_radius: &f32| {
       // Если радиус слишком большой, то привязка местоположения к графу не осуществляется.
       if tag.extract().distance(nearest_pt) > *max_sticking_radius {
         return Some(tag.extract());
       }
       None
-    }) {
-      Ok(Some(pos)) => { nearest_pt = pos; },
-      _ => {},
-    }
+    };
+    
+    if let Ok(Some(pos)) = self.max_sticking_radius.ref_cx(check_msr) { nearest_pt = pos; }
     
     let icon_position_scaled = to_map(painter.clip_rect(), scale, nearest_pt, icon_size);
     let text_position = icon_position_scaled + icon_size / 2f32 + vec2(0f32, icon_size.y);
@@ -242,10 +241,74 @@ impl LittleLocatorApp {
       painter.text(
         text_position,
         egui::Align2::CENTER_CENTER,
-        format!("Расстояние: {}", dist),
+        format!("Расс.: {:.2}", dist),
         egui::FontId::default(),
         egui::Color32::from_rgb(25, 200, 100)
       );
+    }
+    
+    painter.extend(shapes);
+    
+    Ok(())
+  }
+  
+  /// Отрисовывает вычисляемые пути до анкеров.
+  pub fn draw_real_tag_distances(
+    &self,
+    painter: &Painter,
+    tag: &Location,
+    icon_position_scaled: Pos2,
+    icon_size: Vec2,
+    scale: Vec2,
+  ) -> MResult<()> {
+    let mut shapes = vec![];
+    
+    let anchors_pos_list = self.anchors.ref_cx(|anchors| {
+      let mut anchors_pos_list = vec![];
+      for anchor in anchors { anchors_pos_list.push((anchor.0.clone(), pos2(anchor.1.x, anchor.1.y))) }
+      anchors_pos_list
+    })?;
+    
+    let tag_center_pos = pos2(
+      icon_position_scaled.x + icon_size.x / 2f32,
+      icon_position_scaled.y + icon_size.y / 2f32
+    );
+    
+    for anchor_pos in anchors_pos_list {
+      let anchor_center_pos = pos2(
+        painter.clip_rect().left() + anchor_pos.1.x * scale.x,
+        painter.clip_rect().top() + anchor_pos.1.y * scale.y
+      );
+      
+      shapes.extend(egui::Shape::dashed_line(
+        &vec![tag_center_pos, anchor_center_pos],
+        egui::Stroke::new(1.0, egui::Color32::from_rgb(25, 200, 100)),
+        6.0,
+        2.0
+      ));
+      
+      if tag.dist.is_some() {
+        let text_position = (tag_center_pos + anchor_center_pos.to_vec2()) / 2f32;
+        
+        let dists_ref = tag.dist.as_ref().unwrap();
+        let mut real_dist = None;
+        for dist in dists_ref {
+          if anchor_pos.0.eq(&dist.aid) {
+            real_dist = Some(dist.dist);
+            break;
+          }
+        }
+        
+        if let Some(real_dist) = real_dist {
+          painter.text(
+            text_position,
+            egui::Align2::CENTER_CENTER,
+            format!("Расс.: {:.2}", real_dist),
+            egui::FontId::default(),
+            egui::Color32::from_rgb(25, 200, 100)
+          );
+        }
+      }
     }
     
     painter.extend(shapes);

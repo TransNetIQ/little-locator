@@ -78,7 +78,11 @@ impl LittleLocatorApp {
         
         // 6.2. А если ещё и стоит отметка "Показывать расстояние от метки до анкеров"
         if tag.show_anchor_calculated_distance {
-          self.draw_calculated_tag_distances(&painter, &last_tag_position, icon_position_scaled, icon_size, scale)?;
+          if tag.show_anchor_real_distance {
+            self.draw_real_tag_distances(&painter, &last_tag_position, icon_position_scaled, icon_size, scale)?;
+          } else {
+            self.draw_calculated_tag_distances(&painter, &last_tag_position, icon_position_scaled, icon_size, scale)?;
+          }
         }
       }
 

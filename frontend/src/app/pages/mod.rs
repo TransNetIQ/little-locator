@@ -8,7 +8,7 @@ use std::sync::atomic::Ordering as AtomicOrdering;
 use crate::app::app_data::LittleLocatorApp;
 use crate::utils::{Ignore, MResult};
 
-pub const MENU: [&'static str; 3] = [
+pub const MENU: [&str; 3] = [
   "Карта",
   "Метки",
   "Граф путей"

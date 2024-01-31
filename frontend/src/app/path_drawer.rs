@@ -35,7 +35,7 @@ impl LittleLocatorApp {
         let index = &mut tag.redrawal_index;
         while *index > 0 {
           let curr_tag = &tag.locations[tag.locations.len() - *index];
-          if (self.limit_tag_path && curr_tag.ts >= limit_time) || !self.limit_tag_path {
+          if !self.limit_tag_path || curr_tag.ts >= limit_time {
             current_tag_line.push_back(pos2(curr_tag.x, curr_tag.y));
           }
           *index -= 1usize;
@@ -55,7 +55,7 @@ impl LittleLocatorApp {
       let index = &mut tag.redrawal_index;
       while *index > 0 {
         let curr_tag = &tag.locations[tag.locations.len() - *index];
-        if (self.limit_tag_path && curr_tag.ts >= limit_time) || !self.limit_tag_path {
+        if !self.limit_tag_path || curr_tag.ts >= limit_time {
           current_tag_line.push_back(pos2(curr_tag.x, curr_tag.y));
         }
         *index -= 1usize;

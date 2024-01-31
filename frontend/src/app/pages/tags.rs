@@ -12,7 +12,8 @@ impl LittleLocatorApp {
         ui.label(format!("{}", tag.locations.back().unwrap()));
         ui.checkbox(&mut tag.visible, "Отобразить метку");
         ui.checkbox(&mut tag.show_path, "Показать путь");
-        ui.checkbox(&mut tag.show_anchor_calculated_distance, "Показывать расстояние до анкеров");
+        ui.checkbox(&mut tag.show_anchor_calculated_distance, "Показывать расстояния до анкеров");
+        ui.checkbox(&mut tag.show_anchor_real_distance, "Расстояния передаются метками")
       });
     }
   }
