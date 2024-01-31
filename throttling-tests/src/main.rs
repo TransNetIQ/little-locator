@@ -17,6 +17,7 @@ fn main() {
       y: 17.7,
       z: 1.0,
       ts: ll_data::curr_ts(),
+      dist: None,
     });
     send_request_with_location(Location {
       id: "MovableHelper2".into(),
@@ -25,6 +26,7 @@ fn main() {
       y: 19.6,
       z: 1.0,
       ts: ll_data::curr_ts(),
+      dist: None,
     });
     send_request_with_location(Location {
       id: "MovableHelper3".into(),
@@ -33,6 +35,7 @@ fn main() {
       y: 17.0,
       z: 1.0,
       ts: ll_data::curr_ts(),
+      dist: None,
     });
     std::thread::sleep(std::time::Duration::from_millis(500));
     // 2
@@ -43,6 +46,7 @@ fn main() {
       y: 17.7,
       z: 1.0,
       ts: ll_data::curr_ts(),
+      dist: None,
     });
     send_request_with_location(Location {
       id: "MovableHelper2".into(),
@@ -51,6 +55,7 @@ fn main() {
       y: 19.6,
       z: 1.0,
       ts: ll_data::curr_ts(),
+      dist: None,
     });
     send_request_with_location(Location {
       id: "MovableHelper3".into(),
@@ -59,6 +64,7 @@ fn main() {
       y: 17.0,
       z: 1.0,
       ts: ll_data::curr_ts(),
+      dist: None,
     });
     std::thread::sleep(std::time::Duration::from_millis(500));
     // 3
@@ -69,6 +75,7 @@ fn main() {
       y: 20.7,
       z: 1.0,
       ts: ll_data::curr_ts(),
+      dist: None,
     });
     send_request_with_location(Location {
       id: "MovableHelper2".into(),
@@ -77,6 +84,7 @@ fn main() {
       y: 21.6,
       z: 1.0,
       ts: ll_data::curr_ts(),
+      dist: None,
     });
     send_request_with_location(Location {
       id: "MovableHelper3".into(),
@@ -85,6 +93,7 @@ fn main() {
       y: 14.0,
       z: 1.0,
       ts: ll_data::curr_ts(),
+      dist: None,
     });
     std::thread::sleep(std::time::Duration::from_millis(500));
   }
