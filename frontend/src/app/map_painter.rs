@@ -280,13 +280,6 @@ impl LittleLocatorApp {
         painter.clip_rect().top() + anchor_pos.1.y * scale.y
       );
       
-      shapes.extend(egui::Shape::dashed_line(
-        &vec![tag_center_pos, anchor_center_pos],
-        egui::Stroke::new(1.0, egui::Color32::from_rgb(25, 200, 100)),
-        6.0,
-        2.0
-      ));
-      
       if tag.dist.is_some() {
         let text_position = (tag_center_pos + anchor_center_pos.to_vec2()) / 2f32;
         
@@ -298,6 +291,13 @@ impl LittleLocatorApp {
             break;
           }
         }
+        
+        shapes.extend(egui::Shape::dashed_line(
+          &[tag_center_pos, anchor_center_pos],
+          egui::Stroke::new(1.0, egui::Color32::from_rgb(25, 200, 100)),
+          6.0,
+          2.0
+        ));
         
         if let Some(real_dist) = real_dist {
           painter.text(
