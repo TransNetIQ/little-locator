@@ -4,6 +4,8 @@ use std::collections::VecDeque;
 
 use crate::{app::app_data::{LittleLocatorApp, TagSettings}, utils::Ignore};
 
+use super::app_data::{ShowAnchorsDistOps, ShowTagOps};
+
 impl LittleLocatorApp {
   /// Обрабатывает входящие местоположения
   pub fn handle_new_tags_locations(&mut self) {
@@ -29,10 +31,10 @@ impl LittleLocatorApp {
                 locations: new_vecdeque,
                 redrawal_index: 1usize,
                 visible: true,
-                visible_type: 0usize,
+                visible_type: ShowTagOps::RealCoords,
                 show_path: false,
                 show_anchor_distance: false,
-                anchor_distance_type: 0usize,
+                anchor_distance_type: ShowAnchorsDistOps::RealDists,
               }
             );
           } else {

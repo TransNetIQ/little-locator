@@ -7,6 +7,8 @@ use chrono::Local;
 use std::collections::HashMap;
 use std::sync::{Arc, atomic::AtomicBool};
 
+use super::app_data::MenuOps;
+
 impl LittleLocatorApp {
   /// Создаёт приложение.
   pub fn new(cc: &eframe::CreationContext<'_>) -> MResult<Self> {
@@ -54,7 +56,7 @@ impl LittleLocatorApp {
       limit_online: false,
       current_limit: (Local::now().date_naive(), 0, 0),
       previous_limit: (Local::now().date_naive(), 0, 0),
-      menu: 0,
+      menu: MenuOps::Map,
       path_traversal_graph: Vec::new(),
       path_to_add: (false, None, false),
       last_pos: None,

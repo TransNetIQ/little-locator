@@ -8,11 +8,7 @@ use std::sync::atomic::Ordering as AtomicOrdering;
 use crate::app::app_data::LittleLocatorApp;
 use crate::utils::{Ignore, MResult};
 
-pub const MENU: [&str; 3] = [
-  "Карта",
-  "Метки",
-  "Граф путей"
-];
+use super::app_data::MenuOps;
 
 impl eframe::App for LittleLocatorApp {
   /// Отрисовывает приложение.
@@ -28,21 +24,37 @@ impl eframe::App for LittleLocatorApp {
   }
 }
 
+const MENU: [&str; 3] = [
+  "Карта",
+  "Метки",
+  "Граф путей",
+];
+
 impl LittleLocatorApp {
   /// Показывает главную страницу.
   pub fn show_main_page(&mut self, ui: &mut egui::Ui) -> MResult<()> {
     // Показываем меню
     ui.horizontal(|ui| {
       ui.label("Меню:");
-      egui::ComboBox::from_label("").show_index(ui, &mut self.menu, 3usize, |i| MENU[i]);
-      if self.menu == 0usize { ui.checkbox(&mut self.show_path_traversal_graph, "Отображать граф"); }
+      egui::ComboBox::from_id_source(1)
+        .selected_text(format!("{}", match self.menu {
+          MenuOps::Map => MENU[0],
+          MenuOps::Tags => MENU[1],
+          MenuOps::Graph => MENU[2],
+        }))
+        .show_ui(ui, |ui| {
+          ui.selectable_value(&mut self.menu, MenuOps::Map, MENU[0]);
+          ui.selectable_value(&mut self.menu, MenuOps::Tags, MENU[1]);
+          ui.selectable_value(&mut self.menu, MenuOps::Graph, MENU[2]);
+        }
+      );
+      if self.menu == MenuOps::Map { ui.checkbox(&mut self.show_path_traversal_graph, "Отображать граф"); }
     });
     // Показываем весь остальной интерфейс
     match self.menu {
-      0usize => { self.show_map(ui).ignore(); },
-      1usize => { self.show_tags_list(ui); },
-      2usize => { self.show_path_traversal(ui).ignore(); },
-      _ => return Err("Такого пункта меню не существует.".into())
+      MenuOps::Map => { self.show_map(ui).ignore(); },
+      MenuOps::Tags => { self.show_tags_list(ui); },
+      MenuOps::Graph => { self.show_path_traversal(ui).ignore(); },
     }
     Ok(())
   }

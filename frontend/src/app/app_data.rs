@@ -6,8 +6,16 @@ use ll_data::{Location, MapSizes, AnchorPos};
 use std::collections::{HashMap, VecDeque};
 use std::sync::{Arc, atomic::AtomicBool};
 
+/// Меню.
+#[derive(PartialEq, Eq)]
+pub enum MenuOps {
+  Map,
+  Tags,
+  Graph,
+}
+
 /// Опции отображения метки.
-#[allow(dead_code)]
+#[derive(PartialEq, Eq)]
 pub enum ShowTagOps {
   RealCoords,
   GraphSticked,
@@ -15,7 +23,7 @@ pub enum ShowTagOps {
 }
 
 /// Опции отображения расстояния меток до анкеров.
-#[allow(dead_code)]
+#[derive(PartialEq, Eq)]
 pub enum ShowAnchorsDistOps {
   CoordsDists,
   RealDists,
@@ -26,10 +34,10 @@ pub struct TagSettings {
   pub locations: VecDeque<Location>,
   pub redrawal_index: usize,
   pub visible: bool,
-  pub visible_type: usize, // ShowTagOps
+  pub visible_type: ShowTagOps,
   pub show_path: bool,
   pub show_anchor_distance: bool,
-  pub anchor_distance_type: usize, // ShowAnchorsDistOps
+  pub anchor_distance_type: ShowAnchorsDistOps,
 }
 
 /// Структура приложения.
@@ -58,7 +66,7 @@ pub struct LittleLocatorApp {
   pub current_limit: LimitDateTime,
   pub previous_limit: LimitDateTime,
   // Выбор страницы для показа
-  pub menu: usize,
+  pub menu: MenuOps,
   // Граф возможных путей
   pub path_traversal_graph: Vec<Vec<Pos2>>,
   pub path_to_add: (bool, Option<Vec<Pos2>>, bool),

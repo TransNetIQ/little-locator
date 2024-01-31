@@ -1,7 +1,7 @@
 use egui::{Pos2, pos2, vec2};
 use log::debug;
 
-use crate::app::app_data::LittleLocatorApp;
+use crate::app::app_data::{LittleLocatorApp, ShowAnchorsDistOps, ShowTagOps};
 use crate::app::utils::{load_texture, scale, to_map};
 use crate::utils::{construct_dt, MResult, HOURS, MINUTES, Ignore, PositionExtractable};
 
@@ -65,17 +65,17 @@ impl LittleLocatorApp {
         let icon_position_scaled = to_map(painter.clip_rect(), scale, last_tag_position.extract(), icon_size);
         
         match tag.visible_type {
-          0usize => {
+          ShowTagOps::RealCoords => {
             LittleLocatorApp::draw_tag_point(&painter, &tag_txr, icon_position_scaled, icon_size, last_tag_position.id.clone());
           },
-          1usize => {
+          ShowTagOps::GraphSticked => {
             if !self.path_traversal_graph.is_empty() {
               self.draw_nearest_graph_point(&painter, &green_tag_txr, scale, icon_size, last_tag_position);
             } else {
               LittleLocatorApp::draw_tag_point(&painter, &tag_txr, icon_position_scaled, icon_size, last_tag_position.id.clone());
             }
           },
-          2usize => {
+          ShowTagOps::Both => {
             if !self.path_traversal_graph.is_empty() {
               self.draw_nearest_graph_point(&painter, &green_tag_txr, scale, icon_size, last_tag_position);
               LittleLocatorApp::draw_tag_point(&painter, &tag_txr, icon_position_scaled, icon_size, last_tag_position.id.clone());
@@ -83,12 +83,11 @@ impl LittleLocatorApp {
               LittleLocatorApp::draw_tag_point(&painter, &tag_txr, icon_position_scaled, icon_size, last_tag_position.id.clone());
             }
           },
-          _ => (),
         }
         
         // 6.2. А если ещё и стоит отметка "Показывать расстояние от метки до анкеров"
         if tag.show_anchor_distance {
-          if tag.anchor_distance_type == 0usize {
+          if tag.anchor_distance_type == ShowAnchorsDistOps::RealDists {
             self.draw_real_tag_distances(&painter, last_tag_position, icon_position_scaled, icon_size, scale)?;
           } else {
             self.draw_calculated_tag_distances(&painter, last_tag_position, icon_position_scaled, icon_size, scale)?;
