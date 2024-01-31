@@ -19,7 +19,7 @@ jobs:
       - name: Setup | Rust
         uses: ATiltedTree/setup-rust@v1
         with:
-          rust-version: stable
+          rust-version: nightly
           components: clippy
           targets: wasm32-unknown-unknown
       - name: Lint Backend
