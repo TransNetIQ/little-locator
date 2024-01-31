@@ -320,7 +320,7 @@ impl LittleLocatorApp {
             egui::Align2::CENTER_CENTER,
             format!("Расс.: {:.2}", real_dist),
             egui::FontId::default(),
-            egui::Color32::from_rgb(25, 200, 100)
+            egui::Color32::from_rgb(0, 0, 255)
           );
         }
       }
