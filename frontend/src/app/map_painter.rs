@@ -265,7 +265,7 @@ impl LittleLocatorApp {
     
     let anchors_pos_list = self.anchors.ref_cx(|anchors| {
       let mut anchors_pos_list = vec![];
-      for anchor in anchors { anchors_pos_list.push((anchor.0.clone(), pos2(anchor.1.x, anchor.1.y))) }
+      for anchor in anchors { anchors_pos_list.push((anchor.0.clone(), pos2(anchor.1.x, anchor.1.y), anchor.1.z)) }
       anchors_pos_list
     })?;
     
@@ -303,7 +303,11 @@ impl LittleLocatorApp {
           ));
           
           // 2. Отрисовка реального расстояния поверх линии
-          let calculated_dist = pos2(tag.x, tag.y).distance(anchor_pos.1);
+          let calculated_dist = f32::sqrt(
+            f32::powi(anchor_pos.1.x - tag.x, 2) +
+            f32::powi(anchor_pos.1.y - tag.y, 2) +
+            f32::powi(anchor_pos.2 - tag.z, 2)
+          );
           let real_vec = vec2(anchor_center_pos.x - tag_center_pos.x, anchor_center_pos.y - tag_center_pos.y) * real_dist / calculated_dist;
           shapes.push(egui::Shape::line(
             vec![tag_center_pos, tag_center_pos + real_vec],
