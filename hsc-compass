@@ -1,0 +1,50 @@
+#! /bin/sh
+# /etc/init.d/hsc-compass
+
+### BEGIN INIT INFO
+# Provides: hsc-compass
+# Required-Start:    $network $local_fs $remote_fs
+# Required-Stop:     $network $local_fs $remote_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Little Locator Backend (TNIQ HSC Compass).
+# Description: Starts and stops Little Locator's backend.
+### END INIT INFO
+
+#VAR
+RUN="/home/indoor/pak-kompas/little-locator-backend"
+PID=$(pidof -s little-locator-backend)
+
+# Carry out specific functions when asked to by the system
+case "$1" in
+  start)
+    echo "Starting LL server"
+   if [ -z "$PID" ]; then
+      cd /home/indoor/pak-kompas
+      nohup $RUN &
+      echo "Started"
+   else
+      echo "LL server already started"
+   fi
+    ;;
+  stop)
+    echo "Stopping LL server"
+   if [ ! -z "$PID" ]; then
+      kill $PID
+   fi
+   echo "OK"
+    ;;
+  status)
+   if [ ! -z "$PID" ]; then
+      echo "The LL server is running with PID = $PID"
+   else
+      echo "No process found for LL server"
+   fi
+   ;;
+  *)
+    echo "Usage: /etc/init.d/hsc-compass {start|stop|status}"
+    exit 1
+    ;;
+esac
+
+exit 0
