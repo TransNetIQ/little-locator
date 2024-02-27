@@ -29,7 +29,7 @@
 
 ```json
 {
-  "image_filepath": "../frontend/assets/test_cropped.jpg",
+  "image_filepath": "assets/test_cropped.jpg",
   "length": 25.0,
   "width": 25.0,
   "max_sticking_radius": 0.5,
@@ -50,7 +50,7 @@
 }
 ```
 
-Путь указывается **относительно** папки `backend`.
+Путь указывается **относительно** папки `build`.
 
 ## Подготовка к сборке
 
@@ -58,29 +58,23 @@
 
 ```bash
 curl https://sh.rustup.rs -sSf | sh
+rustup toolchain install nightly
+rustup default nightly
 rustup target add wasm32-unknown-unknown
 cargo install --locked trunk
 ```
 
-## Сборка фронтенда
+## Сборка
 
 ```bash
-cd little-locator/frontend
-trunk build --release
-```
-
-## Сборка бэкенда
-
-```bash
-cd little-locator/backend
-cargo build --release
+./prepare-product
 ```
 
 ## Запуск
 
 ```bash
-cd little-locator/backend
-cargo run --release
+cd build
+./little-locator-backend
 ```
 
 Сервер будет запущен на порту `5800`. [Переход в Web-UI](http://127.0.0.1:5800)

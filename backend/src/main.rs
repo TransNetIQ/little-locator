@@ -51,7 +51,7 @@ async fn main() {
     .push(Router::with_path("anchor_img").get(get_anchor_img))
     .push(Router::with_path("msr").get(get_max_sticking_radius))
     .push(Router::with_path("ws_updater").goal(ws_location_sender))
-    .push(Router::with_path("<**path>").get(salvo::serve_static::StaticDir::new(["../frontend/dist"]).defaults("index.html")));
+    .push(Router::with_path("<**path>").get(salvo::serve_static::StaticDir::new(["./dist"]).defaults("index.html")));
   let acceptor = TcpListener::new("0.0.0.0:5800").bind().await;
   Server::new(acceptor).serve(router).await;
 }

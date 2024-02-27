@@ -38,19 +38,19 @@ pub async fn post_new_anchor(req: &mut Request) -> MResult<&'static str> {
 /// Отправляет на фронтенд иконку тега.
 #[handler]
 pub async fn get_tag_img(req: &mut Request, res: &mut Response) {
-  salvo::fs::NamedFile::builder("../frontend/assets/tag.png").send(req.headers(), res).await;
+  salvo::fs::NamedFile::builder("assets/tag.png").send(req.headers(), res).await;
 }
 
 /// Отправляет на фронтенд зелёную иконку тега.
 #[handler]
 pub async fn get_green_tag_img(req: &mut Request, res: &mut Response) {
-  salvo::fs::NamedFile::builder("../frontend/assets/green_tag.png").send(req.headers(), res).await;
+  salvo::fs::NamedFile::builder("assets/green_tag.png").send(req.headers(), res).await;
 }
 
 /// Отправляет на фронтенд иконку якоря.
 #[handler]
 pub async fn get_anchor_img(req: &mut Request, res: &mut Response) {
-  salvo::fs::NamedFile::builder("../frontend/assets/anchor.png").send(req.headers(), res).await;
+  salvo::fs::NamedFile::builder("assets/anchor.png").send(req.headers(), res).await;
 }
 
 /// Отправляет на фронтенд максимальный радиус прилипания.

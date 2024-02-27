@@ -1,0 +1,17 @@
+#!/usr/bin/bash
+
+rm -rf build
+mkdir build
+
+cd frontend
+trunk build --release
+cd ../
+cp -r frontend/dist build/
+cp -r frontend/assets build/
+
+cd backend
+cargo build --release
+cd ../
+cp target/release/little-locator-backend build/
+
+cp backend/config.json build/

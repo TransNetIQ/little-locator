@@ -1,4 +1,4 @@
-/dist
+/build
 /backend/config.json
 /frontend/dist
 /target

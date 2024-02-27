@@ -2,8 +2,9 @@
 members = [
   "./frontend",
   "./backend",
-  "./data_types"
-, "throttling-tests"]
+  "./data_types", 
+  "./throttling-tests"
+]
 resolver = "2"
 
 [profile.dev]
