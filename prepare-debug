@@ -1,0 +1,26 @@
+#!/usr/bin/bash
+
+rm -rf build-debug
+mkdir build-debug
+
+cd frontend
+trunk build
+cd ../
+cp -r frontend/dist build-debug/
+cp -r frontend/assets build-debug/
+
+cd backend
+cargo build
+cd ../
+cp target/debug/little-locator-backend build-debug/
+
+cp backend/config.json build-debug/
+cp python-requirements.txt build-debug/
+
+mkdir build-debug/rhkc
+cp backend/src/redhat_keycloak_auth/auth.py build-debug/rhkc/
+
+cd build-debug
+python3 -m venv ll_rhkc
+source ll_rhkc/bin/activate
+pip3 install -r python-requirements.txt

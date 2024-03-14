@@ -1,0 +1,5 @@
+#!/usr/bin/bash
+
+cd build
+source ll_rhkc/bin/activate
+./little-locator-backend
