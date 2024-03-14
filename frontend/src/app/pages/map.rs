@@ -24,13 +24,21 @@ impl LittleLocatorApp {
   
   /// Отображает карту здания и текущие местоположения объектов.
   pub fn paint_map(&mut self, ui: &mut egui::Ui) -> MResult<egui::Response> {
-    let (response, painter) = ui.allocate_painter(ui.available_size_before_wrap(), egui::Sense::focusable_noninteractive());
-
-    // 1. Рисуем здание
-    egui::Image::from_bytes("bytes://location_map", self.location_image.get_cloned()?)
+    // 1. Вычисляем размеры карты и рисуем
+    let mut available_space = ui.available_size_before_wrap();
+    let image = egui::Image::from_bytes("bytes://location_map", self.location_image.get_cloned()?)
       .tint(egui::Color32::WHITE)
-      .fit_to_original_size(1f32)
-      .paint_at(ui, painter.clip_rect());
+      .fit_to_original_size(1f32);
+    let location_size = self.location_size.get_cloned()?;
+    let location_svec = vec2(location_size.l, location_size.w);
+    if available_space.x / available_space.y >= location_svec.x / location_svec.y {
+      available_space.x = location_svec.x / location_svec.y * available_space.y;
+    } else {
+      available_space.y = location_svec.y / location_svec.x * available_space.x;
+    }
+    
+    let (response, painter) = ui.allocate_painter(available_space, egui::Sense::focusable_noninteractive());
+    image.paint_at(ui, painter.clip_rect());
 
     // 2. Подготавливаем отрисовку местоположений объектов: загружаем текстуры
     let tag_txr = load_texture(ui, "tag", &self.tag_image_bytes)?;
@@ -38,7 +46,6 @@ impl LittleLocatorApp {
     let anchor_txr = load_texture(ui, "anchor", &self.anchor_image_bytes)?;
 
     // 3. Рассчитываем масштаб изображения на экране
-    let location_size = self.location_size.get_cloned()?;
     let icon_size = vec2(20.0, 20.0);
     let scale = scale(painter.clip_rect(), location_size);
 

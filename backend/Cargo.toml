@@ -6,8 +6,10 @@ authors = ["Klimenty Titov <aclo.create@gmail.com>"]
 license = "MIT"
 
 [dependencies]
+# base64 = "0.21"
 ll_data = { path = "../data_types" }
 log = "0.4"
+reqwest = { version = "0.11", default-features = false, features = ["json", "rustls-tls"] }
 salvo = { version = "0.57", features = ["cors", "serve-static", "websocket"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"

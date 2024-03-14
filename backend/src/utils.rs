@@ -4,17 +4,22 @@ use ll_data::{Location, AnchorPos};
 use salvo::{Depot, Request, Response, http::{ParseError, StatusCode}, Writer};
 use salvo::async_trait;
 use serde::{Deserialize, Serialize};
-use std::sync::{Arc, OnceLock};
+use std::{string::FromUtf8Error, sync::{Arc, OnceLock}};
 use tokio::sync::{mpsc, Mutex};
 
 /// Конфигурация приложения.
 #[derive(Deserialize, Serialize)]
 pub struct AppConfig {
-  pub image_filepath: String,
+  pub image_filepath: Option<String>,
   pub length: f32,
   pub width: f32,
   pub max_sticking_radius: Option<f32>,
   pub anchors: Vec<AnchorPos>,
+  pub stnc_renaissance_username: Option<String>,
+  pub stnc_renaissance_password: Option<String>,
+  pub org_name: Option<String>,
+  pub building_id: Option<i32>,
+  pub floor_id: Option<i32>,
 }
 
 /// Ошибка сервера.
@@ -81,6 +86,24 @@ impl From<std::io::Error> for ServerError {
 
 impl From<serde_json::Error> for ServerError {
   fn from(value: serde_json::Error) -> Self {
+    value.to_string().into()
+  }
+}
+
+impl From<reqwest::header::InvalidHeaderValue> for ServerError {
+  fn from(value: reqwest::header::InvalidHeaderValue) -> Self {
+    value.to_string().into()
+  }
+}
+
+impl From<reqwest::Error> for ServerError {
+  fn from(value: reqwest::Error) -> Self {
+    value.to_string().into()
+  }
+}
+
+impl From<FromUtf8Error> for ServerError {
+  fn from(value: FromUtf8Error) -> Self {
     value.to_string().into()
   }
 }

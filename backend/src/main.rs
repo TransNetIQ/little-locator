@@ -1,6 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod server;
+mod rh_keycloak_auth;
 mod threaded_location_sender;
 mod utils;
 
@@ -40,6 +41,8 @@ async fn main() {
   debug!("Created DATA_QUEUE");
 
   start_threaded_location_sender().await.unwrap();
+  
+  rh_keycloak_auth::get_img().await.unwrap();
 
   let router = Router::new()
     .post(post_new_location)

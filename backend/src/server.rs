@@ -109,6 +109,6 @@ pub async fn get_anchors(res: &mut Response) -> MResult<()> {
 #[handler]
 pub async fn get_location_img(req: &mut Request, res: &mut Response) -> MResult<()> {
   let app_config = serde_json::from_str::<AppConfig>(&fs::read_to_string("config.json").await?)?;
-  salvo::fs::NamedFile::builder(app_config.image_filepath).send(req.headers(), res).await;
+  salvo::fs::NamedFile::builder(app_config.image_filepath.ok_or::<String>("Файла не существует".into())?).send(req.headers(), res).await;
   Ok(())
 }
