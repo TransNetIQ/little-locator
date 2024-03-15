@@ -59,7 +59,7 @@ impl LittleLocatorApp {
       self.limit_online = false; // Переменная, которая отвечает за перерисовку путей
       debug!("Needed to redraw with time = {}", construct_dt(&self.current_limit));
     }
-    let limit_time = construct_dt(&self.current_limit).timestamp_millis();
+    let limit_time = construct_dt(&self.current_limit).and_utc().timestamp_millis();
     
     // 6. Отрисовываем сами метки и всё, что к ним относится
     let keys = self.tracked_tags_locations.keys().cloned().collect::<Vec<String>>();

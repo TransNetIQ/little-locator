@@ -49,12 +49,12 @@ pub struct MaxStickingRadius {
   pub max_sticking_radius: f32,
 }
 
-pub fn curr_ts() -> i64 { chrono::Local::now().naive_local().timestamp_millis() }
+pub fn curr_ts() -> i64 { chrono::Local::now().naive_local().and_utc().timestamp_millis() }
 pub fn default_loc_type() -> LocationType { LocationType::Tag }
 
 impl std::fmt::Display for Location {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    f.write_str(&format!("Местоположение объекта #{}: x - {:.3}, y - {:.3}, z - {:.3}; информация получена {}.", self.id, self.x, self.y, self.z, chrono::NaiveDateTime::from_timestamp_millis(self.ts).unwrap()))
+    f.write_str(&format!("Местоположение объекта #{}: x - {:.3}, y - {:.3}, z - {:.3}; информация получена {}.", self.id, self.x, self.y, self.z, chrono::DateTime::from_timestamp_millis(self.ts).unwrap()))
   }
 }
 
