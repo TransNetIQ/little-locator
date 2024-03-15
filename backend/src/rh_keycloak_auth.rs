@@ -4,13 +4,15 @@ use salvo::http::HeaderMap;
 use tokio::io::AsyncWriteExt;
 use std::process::Command;
 
+const TOKEN_FILEPATH: &'static str = "token.txt";
 const IMAGE_FILEPATH: &'static str = "assets/loaded.png";
 
 pub async fn auth() -> MResult<String> {
   info!("Запускается процесс аутентификации в ПК картирования...");
   let mut handle = Command::new("ll_rhkc/bin/python").args(["rhkc/auth.py"]).spawn().unwrap();
   handle.wait()?;
-  let token = std::fs::read_to_string("token.txt")?;
+  let token = std::fs::read_to_string(TOKEN_FILEPATH)?;
+  std::fs::remove_file(TOKEN_FILEPATH)?;
   info!("Получен токен.");
   Ok(token)
 }
@@ -25,6 +27,7 @@ pub async fn get_img() -> MResult<()> {
     app_config.building_id.is_some() &&
     app_config.floor_id.is_some()
   ) { return Ok(()) }
+  info!("Загружаем картинку с сервера...");
   let client = reqwest::Client::new();
   let mut building_req_hs = HeaderMap::new();
   let bearer_token = auth().await?;
@@ -61,5 +64,6 @@ pub async fn get_img() -> MResult<()> {
   image_file.write(&image_bytes.to_vec()).await?;
   app_config.image_filepath = Some(IMAGE_FILEPATH.to_owned());
   tokio::fs::write("config.json", serde_json::to_string(&app_config)?).await?;
+  info!("Картинка загружена. Запуск сервера...");
   Ok(())
 }
