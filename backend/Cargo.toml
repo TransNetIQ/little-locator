@@ -1,6 +1,6 @@
 [package]
 name = "little-locator-backend"
-version = "1.0.3"
+version = "1.1.0"
 edition = "2021"
 authors = ["Klimenty Titov <aclo.create@gmail.com>"]
 license = "MIT"
@@ -9,7 +9,8 @@ license = "MIT"
 # base64 = "0.21"
 ll_data = { path = "../data_types" }
 log = "0.4"
-reqwest = { version = "0.11", default-features = false, features = ["json", "rustls-tls"] }
+regex = "1.10"
+reqwest = { version = "0.11", default-features = false, features = ["json", "rustls-tls", "cookies"] }
 salvo = { version = "0.57", features = ["cors", "serve-static", "websocket"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"

@@ -15,8 +15,12 @@ pub struct AppConfig {
   pub width: f32,
   pub max_sticking_radius: Option<f32>,
   pub anchors: Vec<AnchorPos>,
+  pub mss_domain: Option<String>,
+  pub mss_backend_domain: Option<String>,
   pub stnc_renaissance_username: Option<String>,
   pub stnc_renaissance_password: Option<String>,
+  pub django_api_login: Option<String>,
+  pub django_api_password: Option<String>,
   pub org_name: Option<String>,
   pub building_id: Option<i32>,
   pub floor_id: Option<i32>,
@@ -104,6 +108,12 @@ impl From<reqwest::Error> for ServerError {
 
 impl From<FromUtf8Error> for ServerError {
   fn from(value: FromUtf8Error) -> Self {
+    value.to_string().into()
+  }
+}
+
+impl From<regex::Error> for ServerError {
+  fn from(value: regex::Error) -> Self {
     value.to_string().into()
   }
 }
