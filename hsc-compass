@@ -12,7 +12,7 @@
 ### END INIT INFO
 
 #VAR
-RUN="/home/indoor/pak-kompas/little-locator-backend"
+RUN="/home/indoor/hsc-compass/little-locator-backend"
 PID=$(pidof -s little-locator-backend)
 
 # Carry out specific functions when asked to by the system
