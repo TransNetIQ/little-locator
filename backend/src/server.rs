@@ -4,6 +4,8 @@ use crate::utils::{MResult, DATA_TX_QUEUE, WS_TX_QUEUE, AppConfig};
 
 use ll_data::{Location, LocationType, MapSizes, MaxStickingRadius, MAX_QUEUE_LEN};
 use log::debug;
+use reqwest::header::CACHE_CONTROL;
+use salvo::http::HeaderMap;
 use salvo::{Request, Response};
 use salvo::handler;
 use salvo::websocket::{Message, WebSocketUpgrade};
@@ -109,6 +111,8 @@ pub async fn get_anchors(res: &mut Response) -> MResult<()> {
 #[handler]
 pub async fn get_location_img(req: &mut Request, res: &mut Response) -> MResult<()> {
   let app_config = serde_json::from_str::<AppConfig>(&fs::read_to_string("config.json").await?)?;
-  salvo::fs::NamedFile::builder(app_config.image_filepath.ok_or::<String>("Файла не существует".into())?).send(req.headers(), res).await;
+  let mut headers: HeaderMap = req.headers().clone();
+  headers.insert(CACHE_CONTROL, "no-store".parse().unwrap());
+  salvo::fs::NamedFile::builder(app_config.image_filepath.ok_or::<String>("Файла не существует".into())?).send(&headers, res).await;
   Ok(())
 }
