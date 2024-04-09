@@ -80,6 +80,36 @@
 }
 ```
 
+или:
+
+```json
+{
+  "mss_backend_domain": "backend.domain",
+  "django_api_login": "admin",
+  "django_api_password": "password",
+  "building_id": 5,
+  "floor_id": 5,
+  
+  "length": 25.0,
+  "width": 25.0,
+  "max_sticking_radius": 0.5,
+  "anchors": [
+    {
+      "id": "01:02:04:AC:C6",
+      "x": 3.0,
+      "y": 3.0,
+      "z": 1.0
+    },
+    {
+      "id": "01:02:06:AB:CC",
+      "x": 22.0,
+      "y": 3.0,
+      "z": 1.0
+    }
+  ]
+}
+```
+
 Путь указывается **относительно** папки `build`.
 
 ## Подготовка к сборке
