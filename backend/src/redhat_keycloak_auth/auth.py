@@ -5,22 +5,34 @@ from selenium.webdriver.common.by import By
 import json
 import time
 
+data = None
+with open('config.json') as config_file:
+  data = json.load(config_file)
+
+domain = data["mss_domain"] if "mss_domain" in data else "https://plan-editor-demo.satellite-soft.ru"
+
 # opening chromedriver
 
 chrome_options = uc.ChromeOptions()
-chrome_options.add_argument('--headless')
+# chrome_options.add_argument('--headless')
 chrome_options.add_argument('--no-sandbox')
 chrome_options.add_argument('--ignore-certificate-errors-spki-list')
 chrome_options.add_argument('--ignore-ssl-errors')
 driver = uc.Chrome(options=chrome_options, seleniumwire_options={})
 
-driver.get("https://plan-editor-demo.satellite-soft.ru")
+# allow http
+
+# driver.get("chrome://net-internals/#hsts")
+# wait = WebDriverWait(driver, 30)
+# domain_in = wait.until(EC.element_to_be_clickable((By.ID, 'domain-security-policy-view-delete-input')))
+# domain_in = driver.find_element(By.ID, 'domain-security-policy-view-delete-input')
+# domain_in.send_keys(domain)
+# el = driver.find_element(By.ID, 'domain-security-policy-view-delete-submit')
+# el.click()
 
 # auth
 
-data = None
-with open('config.json') as config_file:
-  data = json.load(config_file)
+driver.get(domain)
 
 username = data["stnc_renaissance_username"]
 password = data["stnc_renaissance_password"]
