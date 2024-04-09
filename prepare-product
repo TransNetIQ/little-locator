@@ -21,7 +21,6 @@ cp python-requirements.txt build/
 
 mkdir build/rhkc
 cp backend/src/redhat_keycloak_auth/auth.py build/rhkc/
-cp geckodriver build/
 
 cd build
 python3 -m venv ll_rhkc
