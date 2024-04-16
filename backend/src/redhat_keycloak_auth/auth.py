@@ -14,9 +14,10 @@ domain = data["mss_domain"] if "mss_domain" in data else "https://plan-editor-de
 # opening chromedriver
 
 chrome_options = uc.ChromeOptions()
-# chrome_options.add_argument('--headless')
+chrome_options.add_argument('--headless')
 chrome_options.add_argument('--no-sandbox')
 chrome_options.add_argument('--ignore-certificate-errors-spki-list')
+chrome_options.add_argument('--ignore-certificate-errors')
 chrome_options.add_argument('--ignore-ssl-errors')
 driver = uc.Chrome(options=chrome_options, seleniumwire_options={})
 

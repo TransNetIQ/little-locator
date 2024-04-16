@@ -8,7 +8,7 @@ use std::{string::FromUtf8Error, sync::{Arc, OnceLock}};
 use tokio::sync::{mpsc, Mutex};
 
 /// Конфигурация приложения.
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct AppConfig {
   pub image_filepath: Option<String>,
   pub length: f32,

@@ -1,7 +1,7 @@
 use crate::utils::{AppConfig, MResult};
 use log::{debug, info};
 use regex::Regex;
-use reqwest::{cookie::Jar, redirect::Policy, Client};
+use reqwest::{cookie::Jar, redirect::Policy, Certificate, Client};
 use salvo::http::HeaderMap;
 use tokio::io::AsyncWriteExt;
 use std::{process::Command, sync::Arc};
@@ -38,7 +38,10 @@ pub async fn auth_with_keycloak() -> MResult<String> {
 
 pub async fn get_img() -> MResult<()> {
   let mut app_config = serde_json::from_str::<AppConfig>(&tokio::fs::read_to_string("config.json").await?)?;
-  if
+  info!("{:?}", app_config);
+  if app_config.image_filepath.is_some()
+  { return Ok(()) }
+  else if
     app_config.image_filepath.is_none() &&
     app_config.mss_backend_domain.is_some() &&
     app_config.stnc_renaissance_username.is_some() &&
@@ -61,7 +64,7 @@ pub async fn get_img_with_keycloak(app_config: &mut AppConfig) -> MResult<()> {
   let domain = app_config.mss_backend_domain.clone().unwrap_or("https://api-plan-editor-demo.satellite-soft.ru".into());
   let origin_domain = app_config.mss_domain.clone().unwrap_or("https://plan-editor-demo.satellite-soft.ru".into());
   info!("Загружаем картинку с сервера...");
-  let client = Client::new();
+  let client = Client::builder().add_root_certificate(Certificate::from_pem(include_bytes!("rp-transnetiq-ru-chain.pem")).unwrap()).use_rustls_tls().build()?;
   let mut building_req_hs = get_headers()?;
   let bearer_token = auth_with_keycloak().await?;
   building_req_hs.insert("Accept", "application/json, text/plain, */*".parse()?);
@@ -86,8 +89,10 @@ pub async fn get_img_with_keycloak(app_config: &mut AppConfig) -> MResult<()> {
     .get("image").unwrap()
     .as_str()    .unwrap();
   debug!("Ссылка на изображение: {}", link);
-  let mut image_file = tokio::fs::File::options().create_new(true).write(true).open(IMAGE_FILEPATH).await?;
-  let image_bytes = reqwest::get(link)
+  let link = link.replace("http", "https")  + "/";
+  let mut image_file = tokio::fs::File::options().create(true).write(true).open(IMAGE_FILEPATH).await?;
+  let image_bytes = client.get(link)
+    .send()
     .await?
     .bytes()
     .await?;
@@ -103,13 +108,22 @@ pub async fn get_img_with_django_cookies(app_config: &mut AppConfig) -> MResult<
   let username = app_config.django_api_login.as_ref().unwrap();
   let password = app_config.django_api_password.as_ref().unwrap();
   
+  debug!("Подготовка хранилища Cookie...");
   let cookie_store = Arc::new(Jar::default());
   
-  let cli = Client::builder().cookie_provider(cookie_store.clone()).build()?;
+  debug!("Подготовка клиента...");
+  let cli = Client::builder()
+    .add_root_certificate(Certificate::from_pem(include_bytes!("rp-transnetiq-ru-chain.pem")).unwrap())
+    .use_rustls_tls()
+    .cookie_provider(cookie_store.clone())
+    .build()?;
   let building_req_hs = get_headers()?;
   
   // 1. Запрос страницы авторизации
+  debug!("Запрос страницы авторизации.");
   let req1 = cli.get(format!("{}/api-auth/login", domain)).headers(building_req_hs.clone()).send().await?;
+  
+  debug!("Формирование парсера регулярного выражения...");
   let csrf_middleware_regex = Regex::new(CSRF_MIDDLEWARE_RE)?;
   let req1_response = req1.text().await?;
   let csrf_middleware = csrf_middleware_regex
@@ -121,13 +135,21 @@ pub async fn get_img_with_django_cookies(app_config: &mut AppConfig) -> MResult<
   debug!("Найден middleware: {}", csrf_middleware);
   
   // 2. Авторизация
-  let cli = Client::builder().cookie_provider(cookie_store).redirect(Policy::none()).build()?;
+  debug!("Подготовка нового клиента.");
+  let cli = Client::builder()
+    .add_root_certificate(Certificate::from_pem(include_bytes!("rp-transnetiq-ru-chain.pem")).unwrap())
+    .use_rustls_tls()
+    .cookie_provider(cookie_store)
+    .redirect(Policy::none())
+    .build()?;
   let mut building_req_hs = get_headers()?;
   building_req_hs.insert("Accept", "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8".parse()?);
   building_req_hs.insert("Connection", "close".parse()?);
   building_req_hs.insert("Content-Type", "application/x-www-form-urlencoded".parse()?);
   building_req_hs.insert("Origin", domain.parse()?);
   building_req_hs.insert("Referer", format!("{}/api-auth/login", domain).parse()?);
+  
+  debug!("Запрос авторизации.");
   cli.post(format!("{}/api-auth/login/", domain))
     .headers(building_req_hs.clone())
     .body(format!("csrfmiddlewaretoken={}&next=&username={}&password={}&submit=Log+in", csrf_middleware, username, password))
@@ -135,6 +157,7 @@ pub async fn get_img_with_django_cookies(app_config: &mut AppConfig) -> MResult<
     .await?;
   
   // 3. Получение изображения
+  debug!("Запрос изображения.");
   let building_data: serde_json::Value = cli
     .get(format!(
       "{}/floor_plans/?building={}",
@@ -146,6 +169,7 @@ pub async fn get_img_with_django_cookies(app_config: &mut AppConfig) -> MResult<
     .await?
     .json()
     .await?;
+  debug!("Содержимое ответа: {:?}", building_data);
   let link = building_data
     .as_array()  .unwrap()
     .get(0)      .unwrap()
@@ -153,8 +177,10 @@ pub async fn get_img_with_django_cookies(app_config: &mut AppConfig) -> MResult<
     .get("image").unwrap()
     .as_str()    .unwrap();
   debug!("Ссылка на изображение: {}", link);
-  let mut image_file = tokio::fs::File::options().create_new(true).write(true).open(IMAGE_FILEPATH).await?;
-  let image_bytes = reqwest::get(link)
+  let link = link.replace("http", "https") + "/";
+  let mut image_file = tokio::fs::File::options().create(true).write(true).open(IMAGE_FILEPATH).await?;
+  let image_bytes = cli.get(link)
+    .send()
     .await?
     .bytes()
     .await?;

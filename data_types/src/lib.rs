@@ -35,7 +35,7 @@ pub struct DistToAnchor {
 }
 
 /// Позиция в трёхмерном пространстве.
-#[derive(Deserialize, Serialize, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct AnchorPos {
   pub id: String,
   pub x: f32,
