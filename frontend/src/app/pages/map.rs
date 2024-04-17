@@ -18,7 +18,11 @@ impl LittleLocatorApp {
       egui::ComboBox::from_label("часов").show_index(ui, &mut self.current_limit.1, 24usize, |i| HOURS[i]);
       egui::ComboBox::from_label("минут").show_index(ui, &mut self.current_limit.2, 60usize, |i| MINUTES[i]);
     });
-    egui::Frame::canvas(ui.style()).show(ui, |ui2| { let _ = self.paint_map(ui2); });
+    if self.updating.load(std::sync::atomic::Ordering::Relaxed) {
+      ui.label("Обновление картинки и анкеров...");
+    } else {
+      egui::Frame::canvas(ui.style()).show(ui, |ui2| { let _ = self.paint_map(ui2); });
+    }
     Ok(())
   }
   

@@ -40,6 +40,51 @@ pub fn get_pics(
   Ok(())
 }
 
+/// Получение пиктограмм меток и анкеров.
+pub fn update_location_image(
+  location_size: OptionalRef<MapSizes>,
+  location_image: ImageBytesOptionalRef,
+  updating: Arc<AtomicBool>,
+) -> MResult<()> {
+  let server_origin = get_server_origin()?;
+  
+  let update_request = ehttp::Request::get(format!("http://{}:5800/update_data", server_origin));
+  let loc_size_request = ehttp::Request::get(format!("http://{}:5800/config", server_origin));
+  let loc_img_request = ehttp::Request::get(format!("http://{}:5800/location_img", server_origin));
+  
+  ehttp::fetch(update_request, move |result| {
+    match result {
+      Err(_) => (),
+      Ok(_) => {
+        ehttp::fetch(loc_size_request, move |result| {
+          match result {
+            Err(_) => (),
+            Ok(resp) => {
+              let bytes = resp.bytes.clone();
+              let map_sizes = match serde_json::from_slice::<MapSizes>(&bytes) {
+                Err(_) => return,
+                Ok(v) => v,
+              };
+              let _ = location_size.set(map_sizes);
+              // Запрос на получение картинки
+              ehttp::fetch(loc_img_request, move |result| {
+                match result {
+                  Err(_) => (),
+                  Ok(resp) => if resp.status == 200 {
+                    let _ = location_image.set(resp.bytes.clone());
+                    updating.store(false, AtomicOrdering::Relaxed);
+                  },
+                }
+              });
+            }
+          }
+        });
+      }
+    }
+  });
+  Ok(())
+}
+
 /// Получение конфигурации приложения с сервера.
 pub fn request_config(
   location_size: OptionalRef<MapSizes>,

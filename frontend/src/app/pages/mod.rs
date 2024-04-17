@@ -49,6 +49,12 @@ impl LittleLocatorApp {
         }
       );
       if self.menu == MenuOps::Map { ui.checkbox(&mut self.show_path_traversal_graph, "Отображать граф"); }
+      if self.menu == MenuOps::Map || self.menu == MenuOps::Graph {
+        if ui.button("Принудительно обновить изображение и анкера").clicked() {
+          self.updating.store(true, AtomicOrdering::Relaxed);
+          let _ = crate::app::startup_requests::update_location_image(self.location_size.clone(), self.location_image.clone(), self.updating.clone());
+        }
+      }
     });
     // Показываем весь остальной интерфейс
     match self.menu {

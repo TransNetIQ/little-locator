@@ -12,7 +12,11 @@ impl LittleLocatorApp {
       self.path_to_add = (false, None, false);
       self.path_traversal_graph.clear();
     }
-    egui::Frame::canvas(ui.style()).show(ui, |ui2| { let _ = self.paint_path_traversal(ui2); });
+    if self.updating.load(std::sync::atomic::Ordering::Relaxed) {
+      ui.label("Обновление картинки...");
+    } else {
+      egui::Frame::canvas(ui.style()).show(ui, |ui2| { let _ = self.paint_path_traversal(ui2); });
+    }
     Ok(())
   }
   

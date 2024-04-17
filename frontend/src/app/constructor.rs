@@ -21,6 +21,7 @@ impl LittleLocatorApp {
     get_pics(tag_img.clone(), green_tag_img.clone(), anchor_img.clone())?;
     
     let done = Arc::new(AtomicBool::new(false));
+    let updating = Arc::new(AtomicBool::new(false));
     let loc_size = OptionalRef::new();
     let anchors = OptionalRef::new();
     let loc_img = OptionalRef::new();
@@ -62,6 +63,7 @@ impl LittleLocatorApp {
       last_pos: None,
       max_sticking_radius,
       show_path_traversal_graph: false,
+      updating,
     })
   }
 }

@@ -74,4 +74,6 @@ pub struct LittleLocatorApp {
   pub max_sticking_radius: OptionalRef<f32>,
   // Дополнительные опции
   pub show_path_traversal_graph: bool,
+  // Обновление страницы
+  pub updating: Arc<AtomicBool>,
 }
