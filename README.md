@@ -126,6 +126,8 @@ cargo install --locked trunk
 
 ## Сборка
 
+**Убедитесь,** что `probesm.ini` заполнен.
+
 ```bash
 ./prepare-product
 ```
