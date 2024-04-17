@@ -12,7 +12,6 @@
 ### END INIT INFO
 
 #VAR
-RUN="/home/indoor/hsc-compass/little-locator-backend"
 PID=$(pidof -s little-locator-backend)
 
 # Carry out specific functions when asked to by the system
@@ -20,8 +19,8 @@ case "$1" in
   start)
     echo "Starting LL server"
    if [ -z "$PID" ]; then
-      cd /home/indoor/pak-kompas
-      nohup $RUN &
+      cd /home/indoor/little-locator
+      nohup /bin/bash /home/indoor/little-locator/start.sh &
       echo "Started"
    else
       echo "LL server already started"

@@ -11,9 +11,7 @@ cd ../
 cp -r frontend/dist build/
 cp -r frontend/assets build/
 
-cd backend
-cargo build --release
-cd ../
+cargo build --release --bin little-locator-backend
 cp target/release/little-locator-backend build/
 
 cp backend/config.json build/
@@ -21,6 +19,7 @@ cp python-requirements.txt build/
 
 mkdir build/rhkc
 cp backend/src/redhat_keycloak_auth/auth.py build/rhkc/
+cp probesm.ini build/
 
 cd build
 python3 -m venv ll_rhkc
