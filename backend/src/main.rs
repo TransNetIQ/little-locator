@@ -1,7 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod server;
-mod rh_keycloak_auth;
+mod stnc;
 mod threaded_location_sender;
 mod utils;
 
@@ -16,6 +16,7 @@ use crate::server::{
   get_anchors,
   get_location_img,
   get_max_sticking_radius,
+  update_data,
 };
 use crate::threaded_location_sender::start_threaded_location_sender;
 use crate::utils::{DATA_TX_QUEUE, DATA_RX_QUEUE};
@@ -42,7 +43,7 @@ async fn main() {
 
   start_threaded_location_sender().await.unwrap();
   
-  rh_keycloak_auth::get_img().await.unwrap();
+  stnc::update_data().await.unwrap();
 
   let router = Router::new()
     .post(post_new_location)
@@ -54,6 +55,7 @@ async fn main() {
     .push(Router::with_path("anchor_img").get(get_anchor_img))
     .push(Router::with_path("msr").get(get_max_sticking_radius))
     .push(Router::with_path("ws_updater").goal(ws_location_sender))
+    .push(Router::with_path("update_data").goal(update_data))
     .push(Router::with_path("<**path>").get(salvo::serve_static::StaticDir::new(["./dist"]).defaults("index.html")));
   let acceptor = TcpListener::new("0.0.0.0:5800").bind().await;
   Server::new(acceptor).serve(router).await;

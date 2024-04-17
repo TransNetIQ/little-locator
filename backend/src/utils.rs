@@ -22,6 +22,7 @@ pub struct AppConfig {
   pub django_api_login: Option<String>,
   pub django_api_password: Option<String>,
   pub org_name: Option<String>,
+  pub organization_id: Option<i32>,
   pub building_id: Option<i32>,
   pub floor_id: Option<i32>,
 }

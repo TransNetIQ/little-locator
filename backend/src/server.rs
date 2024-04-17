@@ -116,3 +116,10 @@ pub async fn get_location_img(req: &mut Request, res: &mut Response) -> MResult<
   salvo::fs::NamedFile::builder(app_config.image_filepath.ok_or::<String>("Файла не существует".into())?).send(&headers, res).await;
   Ok(())
 }
+
+/// Принудительно загружает данные из ПК картирования.
+#[handler]
+pub async fn update_data() -> MResult<()> {
+  crate::stnc::update_data().await?;
+  Ok(())
+}
